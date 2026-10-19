@@ -4,6 +4,7 @@
   "buildCommand": null,
   "outputDirectory": "public",
   "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/index" },
     { "source": "/e/:token", "destination": "/index.html" }
   ]
 }
