@@ -23,7 +23,8 @@ header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
 header.top .wrap { display: flex; align-items: center; gap: 12px; padding: 10px 16px; flex-wrap: wrap; }
 .brand { font-weight: 700; font-size: 1.1rem; color: var(--brand); text-decoration: none; margin-right: auto; }
 nav.tabs { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
-nav.tabs .wrap { display: flex; gap: 2px; overflow-x: auto; padding-bottom: 0; }
+nav.tabs .wrap { display: flex; gap: 2px; overflow-x: auto; padding-bottom: 0; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+nav.tabs .wrap::-webkit-scrollbar { height: 6px; } nav.tabs .wrap::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; } nav.tabs .wrap::-webkit-scrollbar-track { background: transparent; }
 nav.tabs a { padding: 12px 12px; text-decoration: none; color: var(--muted); border-bottom: 3px solid transparent; white-space: nowrap; font-weight: 500; }
 nav.tabs a[aria-current="page"] { color: var(--brand); border-color: var(--brand); }
 main { padding-top: 20px; }
