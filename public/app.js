@@ -49,7 +49,7 @@ function shell(content, tab) {
     h('main', { id: 'main', class: 'wrap' }, content),
   ];
 }
-const render = (content, tab) => root.replaceChildren(...shell(content, tab));
+const render = (content, tab) => root.replaceChildren(...shell(content, tab).filter(Boolean));
 
 async function logout() {
   try { await api('/api/logout', { method: 'POST' }); } catch { /* already signed out */ }
