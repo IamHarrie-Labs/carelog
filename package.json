@@ -1,0 +1,21 @@
+{
+  "name": "carelog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared care record with acknowledged handoffs and open items that never disappear.",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/seed.js",
+    "test": "node --test --test-concurrency=1 \"test/*.test.js\""
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "@libsql/client": "^0.18.0",
+    "hono": "^4.6.0"
+  }
+}
