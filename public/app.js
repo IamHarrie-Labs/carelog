@@ -69,20 +69,24 @@ async function loadMe() {
 
 // ---------- sign in / sign up ----------
 function authView(inviteToken) {
-  let mode = 'signup';
+  // Returning users (and test accounts) are the common case, so sign-in is the default.
+  // An invite link opens on sign-up, since the invited person usually has no account yet.
+  let mode = inviteToken ? 'signup' : 'login';
   const err = h('div', { class: 'alert bad', role: 'alert', hidden: true, testid: 'auth-error' });
   const form = h('form', { testid: 'auth-form' });
   const draw = () => {
     form.replaceChildren(
-      h('div', { class: 'tabs-auth' },
-        h('button', { type: 'button', 'aria-pressed': mode === 'signup', testid: 'mode-signup', onclick: () => { mode = 'signup'; draw(); } }, 'Create account'),
-        h('button', { type: 'button', 'aria-pressed': mode === 'login', testid: 'mode-login', onclick: () => { mode = 'login'; draw(); } }, 'Sign in')),
+      h('h2', { testid: 'auth-heading' }, mode === 'signup' ? 'Create your account' : 'Sign in to CareLog'),
       mode === 'signup' ? h('div', { class: 'field' }, h('label', { for: 'a_name' }, 'Your name'), h('input', { id: 'a_name', name: 'name', required: true, autocomplete: 'name', testid: 'auth-name' })) : null,
       h('div', { class: 'field' }, h('label', { for: 'a_email' }, 'Email'), h('input', { id: 'a_email', name: 'email', type: 'email', required: true, autocomplete: 'email', testid: 'auth-email' })),
       h('div', { class: 'field' }, h('label', { for: 'a_pw' }, 'Password'), h('input', { id: 'a_pw', name: 'password', type: 'password', required: true, minlength: 8, autocomplete: mode === 'signup' ? 'new-password' : 'current-password', testid: 'auth-password' }),
         mode === 'signup' ? h('div', { class: 'small muted' }, 'At least 8 characters.') : null),
       err,
-      h('button', { class: 'primary', type: 'submit', testid: 'auth-submit', style: 'width:100%' }, mode === 'signup' ? 'Create account' : 'Sign in'));
+      h('button', { class: 'primary', type: 'submit', testid: 'auth-submit', style: 'width:100%' }, mode === 'signup' ? 'Create account' : 'Sign in'),
+      h('p', { class: 'small', style: 'text-align:center;margin:14px 0 0' },
+        mode === 'signup'
+          ? ['Already have an account? ', h('a', { href: '#', testid: 'mode-login', onclick: (e) => { e.preventDefault(); mode = 'login'; err.hidden = true; draw(); } }, 'Go to sign in')]
+          : ['New to CareLog? ', h('a', { href: '#', testid: 'mode-signup', onclick: (e) => { e.preventDefault(); mode = 'signup'; err.hidden = true; draw(); } }, 'Create an account')]));
   };
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
