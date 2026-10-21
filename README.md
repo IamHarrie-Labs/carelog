@@ -3,8 +3,9 @@
 **A shared care record for families who take turns looking after someone.**
 Who did what, a clear handover when care passes from one person to the next, and open items that never quietly disappear.
 
-- **Live app:** _set after first deploy_ (see [Deploy](#deploy))
-- **Demo login:** `sam@demo.carelog.test` / `alex@demo.carelog.test`, password `carelog-demo-2026` (synthetic data only; run `npm run seed`)
+- **Live app:** https://carelog-sigma.vercel.app
+- **Requirements the browser suite is generated from:** [docs/PRD.md](docs/PRD.md)
+- **Try it:** create your own account on the sign-in page. No email is sent and no real data is needed; use made-up names.
 - **Built for:** TestSprite Hackathon Season 4
 
 ## The problem
