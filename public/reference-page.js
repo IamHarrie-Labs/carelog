@@ -1,5 +1,5 @@
 import { h } from './ui.js';
-const signInButton = () => h('a', { class: 'ref-primary', href: '#/login' }, 'Sign in to CareLog');
+const createCircleButton = () => h('a', { class: 'ref-primary', href: '#/signup', testid: 'hero-create' }, 'Create a care circle');
 const vector = (name, size = 20) => h('img', { class: 'ref-icon', src: `/assets/${name}.svg`, width: size, height: size, alt: '' });
 import { startReferenceMotion } from './reference-motion.js';
 
@@ -67,9 +67,9 @@ export function renderReferencePage(root, brand) {
   const menu = h('div', { class: 'cl-nav-links', id: 'cl-nav-links' }, h('a', { href: '#/how-it-works' }, 'How it works'), h('a', { href: '#/for-families' }, 'For families'));
   const toggle = h('button', { class: 'cl-menu', 'aria-expanded': 'false', 'aria-controls': 'cl-nav-links', 'aria-label': 'Toggle navigation', onclick: () => { const open = toggle.getAttribute('aria-expanded') !== 'true'; toggle.setAttribute('aria-expanded', String(open)); menu.classList.toggle('is-open', open); } }, 'Menu');
   root.replaceChildren(h('div', { class: 'ref-page' },
-    h('header', { class: 'cl-nav ref-nav' }, brand(), menu, h('div', { class: 'cl-nav-actions' }, h('a', { href: '#/signup' }, 'Create account'), h('a', { class: 'ref-primary', href: '#/login', testid: 'landing-login' }, 'Sign in')), toggle),
+    h('header', { class: 'cl-nav ref-nav' }, brand(), menu, h('div', { class: 'cl-nav-actions' }, h('a', { href: '#/login', testid: 'landing-login' }, 'Sign in'), h('a', { class: 'ref-primary', href: '#/signup' }, 'Create a care circle')), toggle),
     h('main', { id: 'main' },
-      h('section', { class: 'ref-hero', 'aria-labelledby': 'ref-hero-title' }, label('CareLog · Shared family care'), h('h1', { id: 'ref-hero-title' }, 'Care changes hands.', h('em', {}, 'The details stay together.')), signInButton(), h('p', { class: 'ref-availability' }, 'New to CareLog? ', h('a', { href: '#/signup' }, 'Create an account')),
+      h('section', { class: 'ref-hero', 'aria-labelledby': 'ref-hero-title' }, label('CareLog · Shared family care'), h('h1', { id: 'ref-hero-title' }, 'Care changes hands.', h('em', {}, 'The details stay together.')), createCircleButton(), h('p', { class: 'ref-availability' }, 'Already caring together? ', h('a', { href: '#/login' }, 'Sign in')),
         h('figure', { class: 'cl-story ref-story', 'aria-label': 'A conversation represented as recorded care and a task' },
           h('div', { class: 'cl-conversation ref-conversation' }, h('p', { class: 'cl-line line-one' }, voice('Sam', 'rose'), h('span', {}, 'Mum had lunch at twelve forty-five.')), h('p', { class: 'cl-line line-two' }, voice('Alex', 'sage'), h('span', {}, 'Is Thursday’s transport booked?')), h('p', { class: 'cl-line line-three' }, voice('Alex', 'amber'), h('span', {}, 'I’ll book it. Leave that with me.'))),
           h('div', { class: 'cl-records ref-records' }, h('div', { class: 'cl-record recorded' }, h('img', { class: 'cl-check', src: '/assets/record-check.svg', width: 16, height: 16, alt: '' }), h('span', {}, 'Lunch recorded · 12:45 PM'), tag('Sam', 'rose')), h('div', { class: 'cl-record open' }, h('span', { class: 'ref-square', 'aria-hidden': 'true' }), h('span', {}, 'Book Thursday transport'), tag('Alex', 'amber')))),
