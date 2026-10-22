@@ -21,3 +21,8 @@ Use the approved cream hero followed by moss (#E1E6CD), peach (#F2DCC9), eucalyp
 ## Measured-reference revision (22 October 2026)
 
 Marketing now uses the actual reference fonts: EB Garamond and Figtree. The measured palette is #FFFFEB, #1A1A1A, #034F46 and #E4E4D0. Primary controls retain the approved sage green. The logo master and its DM Sans wordmark remain unchanged. The earlier moss/peach/eucalyptus chapters are superseded; public/reference-page.js, reference-motion.js and reference.css are the canonical marketing implementation. Reference captures and measurements live in docs/reference-audit.
+
+
+## Focused landing update
+
+Use sign-in and account creation actions, never Download CareLog. The five-step walkthrough sits on teal, replacing the floating-note section. There is no photo closing section or generic medical disclaimer in the footer. Preserve the existing logo master. Speaker waveforms, checks and directional icons are SVG assets.

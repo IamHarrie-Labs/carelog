@@ -88,7 +88,7 @@ export function moreViews(S, { render, can, tz, route }) {
   async function appointments() {
     const list = await api(`/api/circles/${cid()}/appointments`);
     const add = h('button', { class: 'primary', testid: 'add-appointment', onclick: async () => {
-      const out = await modal({ title: 'Add an appointment', submit: 'Add', intro: 'If nobody is taking them, it becomes an open item so it cannot be forgotten.',
+      const out = await modal({ title: 'Add an appointment', submit: 'Add', intro: 'If no one is assigned, we will add a task to arrange who is going.',
         fields: [
           { name: 'title', label: 'What is it?', required: true, placeholder: 'e.g. Cardiology check-up' },
           { name: 'starts_at', label: 'When', type: 'datetime-local', required: true },
@@ -126,7 +126,7 @@ export function moreViews(S, { render, can, tz, route }) {
           const out = await modal({ title: `Update ${s.name}`, submit: 'Save', fields: [{ name: 'remaining', label: 'How many are left now?', type: 'number', min: 0, value: s.remaining, required: true }],
             onSubmit: (v) => api(`/api/circles/${cid()}/supplies/${s.id}`, { method: 'PATCH', body: { remaining: Number(v.remaining) } }) });
           if (out) route();
-        } }, 'Update count') : null))) : h('p', { class: 'muted' }, 'Nothing tracked yet.'))), 'supplies');
+        } }, 'Update count') : null))) : h('p', { class: 'muted' }, 'Add supplies you want to keep an eye on.'))), 'supplies');
   }
 
   async function documents() {
@@ -153,7 +153,7 @@ export function moreViews(S, { render, can, tz, route }) {
     render(h('div', {}, h('h1', {}, 'Weekly digest'),
       h('div', { class: 'card', testid: 'digest' }, h('ul', { class: 'plain' }, d.summary.map((l) => h('li', {}, l)))),
       h('div', { class: 'card', testid: 'patterns' }, h('h2', {}, 'Worth mentioning to the doctor'),
-        p.patterns.length ? h('ul', { class: 'plain' }, p.patterns.map((x) => h('li', {}, x.message))) : h('p', { class: 'muted' }, 'No repeated notes this week.'),
+        p.patterns.length ? h('ul', { class: 'plain' }, p.patterns.map((x) => h('li', {}, x.message))) : h('p', { class: 'muted' }, 'No recurring notes found this week.'),
         h('p', { class: 'small muted' }, p.disclaimer))), 'digest');
   }
 

@@ -100,4 +100,4 @@ Run `npm run test:browser` for the Playwright journey. It starts a local app wit
 
 The landing was rebuilt from a measured section audit of the supplied Wispr Flow reference. The 36 reference captures and measurements are indexed in [docs/reference-audit/README.md](docs/reference-audit/README.md). EB Garamond and Figtree are locally hosted under their included licenses. The existing CareLog logo master is unchanged.
 
-Download CareLog installs the web app where supported, or shows browser-specific instructions. The app requires connectivity and does not cache care or account data in the service worker. Regenerate its PNG icons from the logo master with `node scripts/create-app-icons.mjs`.
+CareLog opens in your browser. Sign in to view your circle, or create an account to start one. The landing page uses the same logo as account and workspace pages.

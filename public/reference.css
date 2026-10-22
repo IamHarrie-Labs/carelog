@@ -1,7 +1,6 @@
 /* Measured reference: EB Garamond + Figtree; cream, teal, charcoal and olive. */
 .marketing { background:#ffffeb; color:#1a1a1a; font-family:Figtree,Arial,sans-serif; }
 .ref-page { --ref-cream:#ffffeb; --ref-ink:#1a1a1a; --ref-teal:#034f46; --ref-olive:#e4e4d0; --ref-orange:#ffa946; }
-.ref-page *, .ref-install * { box-sizing:border-box; }
 .ref-page h1,.ref-page h2,.ref-page h3 { font-family:'EB Garamond',Georgia,serif; font-weight:400; color:inherit; }
 .ref-page h2 { font-size:75px; line-height:1; letter-spacing:-2px; margin:0; text-wrap:balance; }
 .ref-page h2 em { display:block; font-weight:400; padding-bottom:7px; }
@@ -14,11 +13,10 @@
 .ref-nav .cl-nav-links { gap:24px; }
 .ref-nav .cl-nav-links a,.ref-nav .cl-nav-actions>a { font-size:14px!important; color:#6a6a60!important; }
 .ref-nav .cl-nav-actions { gap:16px; }
-.ref-download { display:inline-flex; align-items:center; justify-content:center; gap:9px; border:2px solid #1a1a1a; background:#d2e5ce; color:#1a1a1a; padding:12px 18px; min-height:52px; border-radius:8px; font:500 16px/1.25 Figtree,sans-serif; text-decoration:none; cursor:pointer; }
-.ref-download:hover { background:#bfd9bb; border-color:#1a1a1a; }
-.ref-download:active { transform:translateY(1px); }
-.ref-download-symbol { font-family:Arial,sans-serif; font-size:24px; line-height:16px; }
-.ref-nav .ref-download { font-size:14px; min-height:46px; padding:10px 13px; white-space:nowrap; }
+.ref-primary { display:inline-flex; align-items:center; justify-content:center; gap:9px; border:2px solid #1a1a1a; background:#d2e5ce; color:#1a1a1a; padding:12px 18px; min-height:52px; border-radius:8px; font:500 16px/1.25 Figtree,sans-serif; text-decoration:none; cursor:pointer; }
+.ref-primary:hover { background:#bfd9bb; border-color:#1a1a1a; }
+.ref-primary:active { transform:translateY(1px); }
+.ref-nav .ref-primary { font-size:14px; min-height:46px; padding:10px 13px; white-space:nowrap; }
 .ref-page main { padding:0; }
 .ref-hero { max-width:1280px; margin:auto; text-align:center; padding:96px 32px 0; }
 .ref-hero h1 { font-size:96px; line-height:.98; letter-spacing:-3px; margin:28px auto 42px; max-width:1160px; }
@@ -48,12 +46,6 @@
 .ref-statement .ref-label { color:#a2a296; margin-bottom:24px; }
 .ref-statement>p:last-child { font:400 40px/1.15 'EB Garamond',serif; }
 .ref-statement em { display:block; font-weight:400; }
-.ref-detail-world { position:relative; overflow:clip; display:grid; place-items:center; min-height:850px; margin-top:-60px; padding:150px 160px; border-radius:80px 80px 0 0; background:#034f46; color:#ffffeb; }
-.ref-detail-heading { max-width:850px; text-align:center; z-index:1; }
-.ref-detail-heading h2 { font-size:75px; line-height:.98; }
-.ref-orbit-note { position:absolute; padding:12px 16px; background:#003d36; border-radius:18px 18px 18px 2px; font-size:13px; max-width:240px; color:#e5e9d6; }
-.ref-orbit-note small { display:block; position:absolute; bottom:calc(100% + 8px); left:0; font-size:10px; color:#f0b86f; }
-.note-a { top:18%; left:58%; opacity:.8; } .note-b { top:43%; right:3%; opacity:.6; } .note-c { top:43%; left:2%; opacity:.65; } .note-d { bottom:15%; left:52%; opacity:.6; }
 .ref-walkthrough { position:relative; min-height:2500px; padding:126px 32px 80px; scroll-margin-top:110px; }
 .ref-walkthrough-heading { text-align:center; max-width:1000px; margin:0 auto 96px; }
 .ref-walkthrough-heading>.ref-label { margin-bottom:32px; }
@@ -139,13 +131,6 @@
 .ref-faq-answer { padding:30px; min-width:0; }
 .ref-faq-answer h4 { font:500 15px/1.5 Figtree,sans-serif; margin:0 0 24px; }
 .ref-faq-answer p { padding:20px; background:#ffffeb; border-radius:16px; font-size:15px; line-height:1.6; }
-.ref-closing { position:relative; text-align:center; border-radius:80px; overflow:hidden; background:#034f46; color:#ffffeb; padding:160px 32px 100px; }
-.ref-closing::before { content:''; position:absolute; inset:0; background:#0e1814a6; z-index:1; }
-.ref-closing>* { position:relative; z-index:2; }
-.ref-closing>img.ref-closing-photo { position:absolute; z-index:0; inset:0; width:100%; height:100%; object-fit:cover; }
-.ref-closing h2 { font-size:120px; line-height:.9; letter-spacing:-3px; max-width:1120px; margin:0 auto 50px; }
-.ref-closing>p:not(.ref-availability) { font-size:22px; margin-bottom:32px; }
-.ref-closing .ref-availability { color:#e0e0d0; }
 .ref-footer { padding:90px 40px 32px; max-width:1280px; margin:auto; }
 .ref-footer-top { display:flex; gap:40px; align-items:center; margin-bottom:65px; }
 .ref-footer-top>p { font-size:16px; line-height:1.5; color:#73736a; }
@@ -153,18 +138,10 @@
 .ref-footer-columns>div { display:flex; flex-direction:column; gap:16px; align-items:flex-start; }
 .ref-footer-columns a { font-size:15px; text-decoration:none; }
 .ref-footer-columns .ref-label { margin-bottom:12px; font-size:12px; }
-.ref-footer-columns .ref-download { min-height:42px; font-size:13px; padding:9px 12px; }
-.ref-footer-boundary { font-size:12px; color:#74746c; margin-top:80px!important; }
-.ref-install p { font-size:15px; line-height:1.6; }
-.ref-install h2 { font:40px/1 'EB Garamond',serif; margin:20px 0; }
-.ref-install ol { padding-left:20px; margin:24px 0; font-size:15px; line-height:1.7; }
-.ref-install li { margin-bottom:12px; }
-.ref-install .ref-install-note { color:#687162; font-size:12px; margin-bottom:24px; }
+.ref-footer-columns .ref-primary { min-height:42px; font-size:13px; padding:9px 12px; }
 @media(max-width:1100px) {
  .ref-nav.cl-nav { margin-left:auto; margin-right:auto; }
  .ref-hero h1 { font-size:80px; }
- .ref-detail-world { padding-left:100px; padding-right:100px; }
- .ref-detail-heading h2 { font-size:68px; }
  .ref-walkthrough-sticky { grid-template-columns:155px minmax(270px,1fr) 240px; gap:25px; }
  .ref-scene { padding:35px 22px; }
  .ref-scene-control { font-size:18px!important; }
@@ -172,10 +149,9 @@
  .ref-switch { margin-left:32px; margin-right:32px; gap:28px; padding:48px 32px; }
  .ref-switch h2 { font-size:40px; }
  .ref-access { gap:80px; }
- .ref-closing h2 { font-size:96px; }
 }
 @media(max-width:900px) and (min-width:761px) {
- .ref-nav .ref-download { font-size:12px; padding:10px; }
+ .ref-nav .ref-primary { font-size:12px; padding:10px; }
  .ref-nav .cl-nav-links { gap:15px; }
  .ref-hero h1 { font-size:68px; }
  .ref-story.cl-story { flex-direction:column; max-width:500px; }
@@ -191,14 +167,14 @@
  .ref-label { font-size:12px; }
  .ref-nav.cl-nav { display:flex; width:calc(100% - 32px); margin:12px auto 0; top:8px; min-height:60px; padding:8px 12px; gap:12px; }
  .ref-nav .cl-nav-actions { margin-left:auto; }
- .ref-nav .cl-nav-actions>.ref-download { display:none; }
+ .ref-nav .cl-nav-actions>a:not(.ref-primary) { display:none; }
  .ref-nav .cl-nav-links { justify-content:center; }
  .ref-nav .cl-menu { display:inline-flex; }
  .ref-hero { padding:72px 22px 0; }
  .ref-hero h1 { font-size:50px; line-height:1; letter-spacing:-1.6px; margin:28px -8px 35px; }
  .ref-hero h1 em { padding-bottom:9px; }
  .ref-availability { font-size:11px; max-width:28ch; margin-left:auto!important; margin-right:auto!important; }
- .ref-download { font-size:15px; min-height:48px; }
+ .ref-primary { font-size:15px; min-height:48px; }
  .ref-story.cl-story { flex-direction:column; gap:26px; margin-top:66px; max-width:440px; }
  .ref-conversation.cl-conversation { flex:auto; width:fit-content; max-width:100%; }
  .ref-story .cl-line { font-size:17px; line-height:1.5; gap:8px; letter-spacing:-.3px; }
@@ -210,10 +186,6 @@
  .ref-replay { margin-top:18px; }
  .ref-statement { margin-top:60px; padding:70px 24px 100px; border-radius:40px 40px 0 0; }
  .ref-statement>p:last-child { font-size:33px; }
- .ref-detail-world { margin-top:-35px; min-height:650px; padding:130px 34px; border-radius:40px 40px 0 0; }
- .ref-detail-heading h2 { font-size:49px; line-height:1; }
- .ref-orbit-note { font-size:10px; max-width:180px; padding:9px 12px; }
- .note-a { left:45%; top:15%; } .note-b { top:auto; bottom:15%; right:4%; } .note-c { left:2%; top:30%; opacity:.4; } .note-d { display:none; }
  .ref-walkthrough { min-height:auto; padding:80px 22px 30px; }
  .ref-walkthrough-heading { margin-bottom:50px; }
  .ref-walkthrough-heading h2 { font-size:46px; }
@@ -254,14 +226,29 @@
  .ref-faq-questions button { font-size:14px; min-height:50px; }
  .ref-faq-answer { padding:26px 12px 14px; }
  .ref-faq-answer p { font-size:15px; padding:18px; }
- .ref-closing { padding:100px 24px 75px; border-radius:40px; }
- .ref-closing h2 { font-size:62px; line-height:.95; letter-spacing:-2px; margin-bottom:35px; }
- .ref-closing>p:not(.ref-availability) { font-size:18px; line-height:1.4; }
  .ref-footer { padding:65px 24px 30px; }
  .ref-footer-top { align-items:flex-start; flex-direction:column; gap:20px; margin-bottom:45px; }
  .ref-footer-columns { grid-template-columns:1fr 1fr; gap:45px 25px; margin-left:0; }
  .ref-footer-columns>div { gap:14px; }
  .ref-footer-columns a { font-size:14px; }
- .ref-footer-boundary { margin-top:55px!important; line-height:1.6; }
 }
-@media(prefers-reduced-motion:reduce) { .ref-replay { display:none; } .ref-orbit-note { transform:none!important; } .ref-situation { position:relative; top:auto!important; } }
+
+/* One focused walkthrough replaces the separate floating-note section. */
+.ref-walkthrough { background:#034f46; color:#ffffeb; margin-top:-60px; border-radius:80px; }
+.ref-walkthrough-heading>.ref-label { color:#c3d4c8; }
+.ref-walkthrough .ref-scene { color:#1a1a1a; background:#e4e4d0; }
+.ref-scene-nav { border-left-color:#ffffff30; }
+.ref-scene-control { color:#b6cec4; }
+.ref-scene-control[aria-pressed=true],.ref-scene-control:hover { color:#ffffeb; }
+.ref-scene-control:focus-visible { outline:2px solid #ffffeb; outline-offset:5px; }
+.ref-scene-copy p,.ref-mobile-walkthrough article>p { color:#d8e4d8; }
+.ref-workflow { padding-top:120px; }
+.ref-icon { display:inline-block; flex-shrink:0; vertical-align:middle; }
+.ref-replay { display:flex; align-items:center; justify-content:center; gap:6px; }
+.ref-footer-columns a,.ref-switch a { display:inline-flex; align-items:center; gap:5px; }
+.ref-nav .cl-nav-actions>.ref-primary { color:#1a1a1a!important; }
+@media(max-width:760px) {
+ .ref-walkthrough { margin-top:-35px; border-radius:40px; padding-top:80px; }
+ .ref-workflow { padding-top:80px; }
+}
+@media(prefers-reduced-motion:reduce) { .ref-replay { display:none; } .ref-situation { position:relative; top:auto!important; } }

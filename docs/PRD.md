@@ -98,4 +98,4 @@ Medical advice, dose recommendations, interaction checking, prescription scannin
 
 ## 5. Install CareLog
 
-The public landing has Download CareLog buttons. CareLog is a web app: supported browsers offer a native web-app install prompt; otherwise the button opens clear installation instructions and an Open CareLog link. There are no claimed native Windows/macOS binaries. The manifest uses the existing logo. The service worker never caches records or account API responses, and record access requires connectivity. The landing includes a keyboard-accessible question/answer panel.
+The public landing directs people to sign in or create an account. It has no download buttons. A green walkthrough explains recording, corrections, missing records, handoff review and unfinished tasks. The landing includes a keyboard-accessible question/answer panel and uses the same logo as account and workspace pages.

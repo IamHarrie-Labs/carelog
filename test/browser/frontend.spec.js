@@ -34,6 +34,7 @@ test('landing, account, persistent care record and every workspace section work 
   await expect(page.locator('[data-testid^="status-"]').first()).toContainText('Robin Test');
   for (const section of ['today','handoff','items','timeline','people','emergency','money','load','appointments','supplies','documents','digest']) {
     await page.getByTestId(`tab-${section}`).click();
+    await expect(page.getByTestId(`tab-${section}`)).toHaveAttribute('aria-current', 'page');
     await expect(page.locator('main h1')).toBeVisible();
     await expect(page.locator('main .alert.bad')).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -73,7 +74,7 @@ test('approved hero keeps consistent branding, centered navigation and compact i
   await page.evaluate(() => document.fonts.ready);
   await expect(page.locator('.cl-story figcaption')).toHaveCount(0);
   await expect(page.locator('.cl-open-label')).toHaveCount(0);
-  await expect(page.locator('.cl-wave i')).toHaveCount(15);
+  await expect(page.locator('.cl-wave[src="/assets/voice-wave.svg"]')).toHaveCount(3);
   await expect(page.locator('.cl-check')).toHaveAttribute('src', '/assets/record-check.svg');
   const navigation = await page.locator('.cl-nav').boundingBox();
   const links = await page.locator('.cl-nav-links').boundingBox();
@@ -102,7 +103,7 @@ test('approved hero keeps consistent branding, centered navigation and compact i
   }
 });
 
-test('CareLog download, walkthrough, FAQ and reduced motion work', async ({ page }) => {
+test('sign-in, focused green walkthrough, FAQ and reduced motion work', async ({ page }) => {
   await page.goto('/');
   await page.getByTestId('replay-handoff').click();
   expect(await page.evaluate(() => document.querySelector('.cl-story').getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
@@ -113,27 +114,17 @@ test('CareLog download, walkthrough, FAQ and reduced motion work', async ({ page
   await expect(page.getByTestId('workflow-preview')).toContainText('No administration recorded');
   await page.getByRole('button', { name: 'Carry the work forward', exact: true }).click();
   await expect(page.getByTestId('workflow-preview')).toContainText('Outcome still to be recorded.');
-  await page.getByRole('tab', { name: 'How do I download CareLog?', exact: true }).click();
-  await expect(page.locator('.ref-faq-answer')).toContainText('installable web app');
+  await page.getByRole('tab', { name: 'How do I get started?', exact: true }).click();
+  await expect(page.locator('.ref-faq-answer')).toContainText('Create an account');
   await page.keyboard.press('ArrowDown');
   await expect(page.getByRole('tab', { name: 'Does it tell me which medication to give?', exact: true })).toBeFocused();
   await expect(page.locator('.ref-faq-answer')).toContainText('does not recommend doses');
-  await page.locator('.ref-hero').getByRole('button', { name: 'Download CareLog', exact: true }).click();
-  await expect(page.getByRole('dialog')).toContainText('CareLog installs as a web app');
-  await page.getByRole('button', { name: 'Close', exact: true }).click();
-  for (const path of ['/manifest.webmanifest', '/service-worker.js', '/assets/carelog-192.png', '/assets/carelog-512.png']) {
-    const response = await page.request.get(path);
-    expect(response.ok()).toBeTruthy();
-    if (path.endsWith('.png')) {
-      expect(response.headers()['content-type']).toContain('image/png');
-      expect((await response.body()).subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');
-    }
-  }
-  const manifest = await (await page.request.get('/manifest.webmanifest')).json();
-  expect(manifest.name).toBe('CareLog');
-  expect(manifest.display).toBe('standalone');
+  await expect(page.locator('.ref-hero').getByRole('link', { name: 'Sign in to CareLog', exact: true })).toHaveAttribute('href', '#/login');
+  await expect(page.locator('.ref-closing, .ref-detail-world, .ref-footer-boundary')).toHaveCount(0);
+  await expect(page.locator('.ref-walkthrough')).toHaveCSS('background-color', 'rgb(3, 79, 70)');
+  await expect(page.getByText('Download CareLog', { exact: true })).toHaveCount(0);
   await page.screenshot({ animations: 'disabled', path: 'docs/design-concepts/reference-desktop-page.png', fullPage: true });
-  await page.locator('.ref-detail-world').screenshot({ animations: 'disabled', path: 'docs/design-concepts/reference-teal-section.png' });
+  await page.locator('.ref-walkthrough').screenshot({ animations: 'disabled', path: 'docs/design-concepts/reference-teal-section.png' });
   await page.locator('.ref-workflow').screenshot({ animations: 'disabled', path: 'docs/design-concepts/reference-workflow-section.png' });
   await page.locator('.ref-faq').screenshot({ animations: 'disabled', path: 'docs/design-concepts/reference-faq-section.png' });
   for (const [width, height] of [[360, 800], [390, 844], [844, 390], [1024, 768], [1440, 1000]]) {
