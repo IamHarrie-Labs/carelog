@@ -1,10 +1,10 @@
 import { h } from './ui.js';
 
 export const brand = (href = '#/') => h('a', { class: 'cl-brand', href, testid: 'brand' },
-  h('img', { src: '/assets/carelog-mark.svg', width: 35, height: 35, alt: '' }), 'CareLog');
+  h('img', { src: '/assets/carelog-logo.svg', width: 35, height: 35, alt: '' }), h('span', { class: 'cl-wordmark' }, 'CareLog'));
 
 const signup = (label = 'Create a care circle') => h('a', { class: 'cl-button', href: '#/signup' }, label);
-const speaker = (name, tone) => h('span', { class: `cl-speaker ${tone}` }, h('span', { class: 'cl-wave', 'aria-hidden': 'true' }, '▥'), name);
+const speaker = (name, tone) => h('span', { class: `cl-speaker ${tone}` }, h('span', { class: 'cl-wave', 'aria-hidden': 'true' }, Array.from({ length: 5 }, () => h('i'))), name);
 
 export function landingView(root) {
   document.body.classList.add('marketing');
@@ -26,9 +26,8 @@ export function landingView(root) {
             h('p', { class: 'cl-line line-two' }, speaker('Alex', 'sage'), h('span', {}, 'Is Thursday’s transport booked?')),
             h('p', { class: 'cl-line line-three' }, speaker('Alex', 'amber'), h('span', {}, 'I’ll book it. Leave that with me.'))),
           h('div', { class: 'cl-records' },
-            h('div', { class: 'cl-record recorded' }, h('span', { class: 'cl-check', 'aria-hidden': 'true' }, '✓'), h('span', {}, 'Lunch recorded · 12:45 PM'), h('span', { class: 'cl-person rose' }, 'Sam')),
-            h('div', { class: 'cl-record open' }, h('span', { class: 'cl-open', 'aria-hidden': 'true' }), h('span', {}, 'Book Thursday transport'), h('span', { class: 'cl-open-label' }, 'Open'), h('span', { class: 'cl-person amber' }, 'Alex'))),
-          h('figcaption', {}, 'An example handoff. Open tasks stay open until an outcome is recorded.'))),
+            h('div', { class: 'cl-record recorded' }, h('img', { class: 'cl-check', src: '/assets/record-check.svg', width: 16, height: 16, alt: '' }), h('span', {}, 'Lunch recorded · 12:45 PM'), h('span', { class: 'cl-person rose' }, 'Sam')),
+            h('div', { class: 'cl-record open' }, h('span', { class: 'cl-open', 'aria-hidden': 'true' }), h('span', {}, 'Book Thursday transport'), h('span', { class: 'cl-person amber' }, 'Alex'))))),
       h('section', { class: 'cl-explanation', id: 'how-it-works', 'aria-labelledby': 'how-heading' },
         h('div', {}, h('p', { class: 'cl-eyebrow' }, 'A little less piecing things together'), h('h2', { id: 'how-heading' }, 'One shared record.', h('em', {}, 'Everyone in the picture.')), h('p', {}, 'For families taking turns looking after someone. See what was recorded, what needs checking, and what still needs doing.')),
         h('ol', { class: 'cl-steps' },

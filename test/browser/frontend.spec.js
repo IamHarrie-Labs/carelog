@@ -66,3 +66,37 @@ test('landing, account, persistent care record and every workspace section work 
   await expect(page.getByRole('link', { name: 'Create a care circle', exact: true }).last()).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('approved hero keeps consistent branding, centered navigation and compact icons at portrait and landscape widths', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => document.fonts.ready);
+  await expect(page.locator('.cl-story figcaption')).toHaveCount(0);
+  await expect(page.locator('.cl-open-label')).toHaveCount(0);
+  await expect(page.locator('.cl-wave i')).toHaveCount(15);
+  await expect(page.locator('.cl-check')).toHaveAttribute('src', '/assets/record-check.svg');
+  const navigation = await page.locator('.cl-nav').boundingBox();
+  const links = await page.locator('.cl-nav-links').boundingBox();
+  expect(Math.abs((navigation.x + navigation.width / 2) - (links.x + links.width / 2))).toBeLessThan(2);
+  const gap = await page.locator('.cl-record').first().evaluate(el => {
+    const icon = el.children[0].getBoundingClientRect();
+    const words = el.children[1].getBoundingClientRect();
+    return words.left - icon.right;
+  });
+  expect(gap).toBeLessThanOrEqual(10);
+  const conversationBox = await page.locator('.cl-conversation').boundingBox();
+  const recordsBox = await page.locator('.cl-records').boundingBox();
+  expect(recordsBox.x - conversationBox.x - conversationBox.width).toBeLessThanOrEqual(25);
+  const logoSrc = await page.locator('.cl-nav .cl-brand img').getAttribute('src');
+  for (const route of ['login', 'signup']) {
+    await page.goto(`/#/${route}`);
+    await expect(page.locator('.cl-auth .cl-brand img')).toHaveAttribute('src', logoSrc);
+    await expect(page.locator('.cl-wordmark')).toHaveCSS('font-family', /DM Sans/);
+  }
+  await page.goto('/');
+  for (const [width, height] of [[360, 800], [390, 844], [844, 390], [1024, 768], [1440, 1000]]) {
+    await page.setViewportSize({ width, height });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await expect(page.locator('.cl-check')).toBeVisible();
+    await page.screenshot({ path: `docs/design-concepts/refined-${width}x${height}.png`, fullPage: true });
+  }
+});
