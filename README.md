@@ -91,3 +91,9 @@ The same record works anywhere responsibility for a person changes hands: newbor
 ## Privacy
 
 Use synthetic data in any public demo. Real health information needs a proper data-protection review before real families use this.
+
+## Editorial frontend
+
+The approved cream, forest and sage design is implemented across the public landing, account forms and all care sections. Brand assets and font files are self-hosted. Sign in at `/#/login`; create an account at `/#/signup`. The TestSprite account forms retain their `data-testid` hooks.
+
+Run `npm run test:browser` for the Playwright journey. It starts a local app with an isolated `browser-tests.db`, creates synthetic users, verifies persistent care records, visits all 12 sections and checks phone/tablet/desktop layouts. The default browser channel is Edge; set `PW_CHANNEL=chrome` if using installed Chrome. API tests remain `npm test`.

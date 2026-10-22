@@ -1,5 +1,6 @@
 import { h, api, ApiError, friendly, toast, modal, fmtTime, fmtDateTime } from './ui.js';
 import { moreViews } from './more.js';
+import { brand, landingView } from './landing.js';
 
 const root = document.getElementById('app');
 const S = { me: null, circles: [], circle: null, role: null, members: [] };
@@ -23,31 +24,41 @@ function fatal(e) {
   root.replaceChildren(h('div', { class: 'wrap' }, h('div', { class: 'alert bad', role: 'alert' }, friendly(e))));
 }
 
+const sectionInfo = {
+  today: ['Today', 'The everyday details, recorded together.'],
+  handoff: ['Handoff', 'What happened, what needs checking, and what carries forward.'],
+  items: ['Open items', 'Unfinished work stays visible until someone records an outcome.'],
+  timeline: ['Timeline', 'An attributable history, with corrections kept in view.'],
+  people: ['People', 'The people you trust with the care.'],
+  emergency: ['Emergency', 'Essential information, shared on your terms.'],
+  money: ['Money', 'Shared expenses, clearly recorded.'],
+  load: ['Care load', 'Make the work of caring visible.'],
+  appointments: ['Appointments', 'The next visit, and who is taking care of it.'],
+  supplies: ['Supplies', 'Keep the everyday essentials in view.'],
+  documents: ['Documents', 'Important information, in one place.'],
+  digest: ['Digest', 'A little perspective on the week.'],
+};
 function shell(content, tab) {
+  const title = sectionInfo[tab]?.[0] || 'Your care circles';
   const links = [];
   if (S.circle) {
-    const add = (t, label, ok = true) => ok && links.push(h('a', { href: circleLink(S.circle.id, t), 'aria-current': tab === t ? 'page' : null, testid: `tab-${t}` }, label));
-    add('today', 'Today', can('read'));
-    add('handoff', 'Handoff', can('read'));
-    add('items', 'Open items', can('read'));
-    add('timeline', 'Timeline', can('read'));
-    add('people', 'People', can('read'));
+    const add = (t, label, ok = true) => ok && links.push(h('a', { href: circleLink(S.circle.id, t), 'aria-current': tab === t ? 'page' : null, testid: `tab-${t}` }, h('span', { class: 'cl-nav-dot', 'aria-hidden': 'true' }), label));
+    add('today', 'Today', can('read')); add('handoff', 'Handoff', can('read'));
+    add('items', 'Open items', can('read')); add('timeline', 'Timeline', can('read')); add('people', 'People', can('read'));
+    links.push(h('p', { class: 'cl-sidebar-label' }, 'More care tools'));
     add('emergency', 'Emergency', can('emergency') || can('emergency_view'));
-    add('money', 'Money', can('money'));
-    add('load', 'Care load', can('read'));
-    add('appointments', 'Appointments', can('read'));
-    add('supplies', 'Supplies', can('read'));
-    add('documents', 'Documents', can('read'));
-    add('digest', 'Digest', can('read'));
+    add('money', 'Money', can('money')); add('load', 'Care load', can('read'));
+    add('appointments', 'Appointments', can('read')); add('supplies', 'Supplies', can('read'));
+    add('documents', 'Documents', can('read')); add('digest', 'Digest', can('read'));
   }
-  return [
-    h('header', { class: 'top' }, h('div', { class: 'wrap' },
-      h('a', { class: 'brand', href: '#/', testid: 'brand' }, 'CareLog'),
-      S.me ? h('span', { class: 'small muted', testid: 'whoami' }, S.me.name) : null,
-      S.me ? h('button', { class: 'small', testid: 'logout', onclick: logout }, 'Sign out') : null)),
-    S.circle ? h('nav', { class: 'tabs', 'aria-label': 'Care circle sections' }, h('div', { class: 'wrap' }, links)) : null,
-    h('main', { id: 'main', class: 'wrap' }, content),
-  ];
+  return [h('div', { class: 'cl-app-layout' },
+    h('aside', { class: 'cl-sidebar' }, brand(),
+      S.circle ? h('a', { class: 'cl-recipient', href: '#/' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.circle.recipient_name.slice(0, 1)), h('span', {}, h('strong', {}, S.circle.recipient_name), h('small', {}, 'Switch care circle ↗'))) : h('p', { class: 'cl-sidebar-intro' }, 'One shared record for the people who care.'),
+      h('nav', { class: 'cl-side-nav', 'aria-label': 'Care circle sections' }, links.length ? links : h('a', { href: '#/', 'aria-current': 'page' }, 'Your care circles')),
+      h('div', { class: 'cl-sidebar-bottom' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.me?.name.slice(0, 1) || 'C'), h('span', {}, h('strong', { testid: 'whoami' }, S.me?.name || 'CareLog'), h('small', {}, S.role || 'Your workspace')), S.me ? h('button', { class: 'cl-signout', testid: 'logout', onclick: logout }, 'Sign out') : null)),
+    h('div', { class: 'cl-workspace' },
+      h('header', { class: 'cl-workspace-header' }, h('p', {}, 'CareLog', h('span', { 'aria-hidden': 'true' }, ' / '), title), S.circle && (can('emergency') || can('emergency_view')) ? h('a', { class: 'cl-emergency-link', href: circleLink(S.circle.id, 'emergency') }, 'Emergency packet ↗') : h('span', { class: 'small muted' }, 'Care, shared clearly.')),
+      h('main', { id: 'main', class: 'wrap cl-app-main' }, sectionInfo[tab] ? h('p', { class: 'cl-page-context' }, sectionInfo[tab][1]) : null, content)))];
 }
 const render = (content, tab) => root.replaceChildren(...shell(content, tab).filter(Boolean));
 
@@ -68,11 +79,11 @@ async function loadMe() {
 }
 
 // ---------- sign in / sign up ----------
-function authView(inviteToken) {
+function authView(inviteToken, initialMode) {
   // Returning users (and test accounts) are the common case, so sign-in is the default.
   // An invite link opens on sign-up, since the invited person usually has no account yet.
-  let mode = inviteToken ? 'signup' : 'login';
-  const err = h('div', { class: 'alert bad', role: 'alert', hidden: true, testid: 'auth-error' });
+  let mode = initialMode || (inviteToken ? 'signup' : 'login');
+  const err = h('div', { class: 'alert bad', role: 'alert', hidden: true, testid: 'auth-error', tabindex: '-1' });
   const form = h('form', { testid: 'auth-form' });
   const draw = () => {
     form.replaceChildren(
@@ -92,20 +103,22 @@ function authView(inviteToken) {
     ev.preventDefault();
     err.hidden = true;
     const fd = Object.fromEntries(new FormData(form));
+    const submit = form.querySelector('[type=submit]');
+    submit.disabled = true; form.setAttribute('aria-busy', 'true'); submit.textContent = mode === 'signup' ? 'Creating account…' : 'Signing in…';
     try {
       await api(mode === 'signup' ? '/api/signup' : '/api/login', { method: 'POST', body: fd });
       await loadMe();
       route();
-    } catch (e) { err.hidden = false; err.textContent = friendly(e); }
+    } catch (e) { err.hidden = false; err.textContent = friendly(e); err.focus(); }
+    finally { submit.disabled = false; form.removeAttribute('aria-busy'); submit.textContent = mode === 'signup' ? 'Create account' : 'Sign in'; }
   });
   draw();
-  render(h('div', {},
-    h('div', { class: 'hero' },
-      h('h1', {}, 'Everyone sees the same record of care.'),
-      h('p', {}, 'CareLog is a shared log for families who take turns caring for someone. Record what was done, hand over clearly, and keep unfinished jobs on the list until someone closes them.'),
-      inviteToken ? h('div', { class: 'alert info', testid: 'invite-banner' }, 'You have been invited to a care circle. Sign in or create an account to join.') : null),
-    h('div', { class: 'card', style: 'max-width:420px;margin:0 auto' }, form),
-    h('p', { class: 'small muted', style: 'text-align:center;margin-top:16px' }, 'CareLog records what people enter. It does not give medical advice or tell anyone when to give a dose.')));
+  root.replaceChildren(h('div', { class: 'cl-auth' },
+    h('header', { class: 'cl-auth-nav' }, brand(), h('a', { href: '#/' }, 'Back to CareLog')),
+    h('main', { id: 'main', class: 'cl-auth-main' },
+      h('div', { class: 'cl-auth-story' }, h('p', { class: 'cl-eyebrow' }, 'Care, shared clearly.'), h('h1', {}, 'A little less guessing.', h('em', {}, 'A little more together.')), h('p', {}, 'One shared record of what happened, what needs checking, and what comes next.')),
+      h('section', { class: 'cl-auth-form', 'aria-label': 'Account access' }, inviteToken ? h('div', { class: 'alert info', testid: 'invite-banner' }, 'You have been invited to a care circle. Sign in or create an account to join.') : null, form,
+        h('p', { class: 'cl-auth-note' }, 'CareLog records what people enter. It does not provide medical advice.')))));
 }
 
 // ---------- home ----------
@@ -436,12 +449,18 @@ let busy = false;
 export async function route() {
   if (busy) return; busy = true;
   try {
+    document.body.classList.remove('marketing');
     const hash = location.hash.replace(/^#/, '') || '/';
     const path = location.pathname;
     if (path.startsWith('/e/')) { await publicEmergency(path.slice(3)); return; }
     await loadMe();
     const inv = hash.match(/^\/invite\/(.+)$/);
-    if (!S.me) { authView(inv?.[1]); if (inv) sessionStorage.setItem('cl_invite', inv[1]); return; }
+    if (!S.me) {
+      if (inv) sessionStorage.setItem('cl_invite', inv[1]);
+      if (inv || !['/', '/how-it-works', '/for-families'].includes(hash)) authView(inv?.[1], hash === '/signup' ? 'signup' : undefined);
+      else landingView(root);
+      return;
+    }
     const pending = inv?.[1] || sessionStorage.getItem('cl_invite');
     if (pending) {
       sessionStorage.removeItem('cl_invite');
@@ -465,5 +484,10 @@ export async function route() {
     fatal(e);
   } finally { busy = false; }
 }
+document.querySelector('.skip').addEventListener('click', (event) => {
+  event.preventDefault();
+  const main = document.getElementById('main');
+  if (main) { main.tabIndex = -1; main.focus(); main.scrollIntoView(); }
+});
 window.addEventListener('hashchange', route);
 route();

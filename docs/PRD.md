@@ -21,7 +21,7 @@ CareLog records what people enter. It never recommends doses, judges safety, or 
 
 ## 3. Sign-in
 
-- The landing page opens on the **Sign in** form: email, password and one **Sign in** button (`auth-submit`). A link "Create an account" (`mode-signup`) switches to the sign-up form, whose button reads **Create account**. A link "Go to sign in" (`mode-login`) switches back.
+- The public landing page has a **Sign in** link to `#/login` and **Create a care circle** links to `#/signup`. Sign in opens the account form: email, password and one **Sign in** button (`auth-submit`). A link "Create an account" (`mode-signup`) switches to the sign-up form, whose button reads **Create account**. A link "Go to sign in" (`mode-login`) switches back.
 - Sign-up needs a name, a valid email and a password of at least 8 characters.
 - Duplicate email: show "An account with that email already exists."
 - Wrong password: show "That email and password do not match."
