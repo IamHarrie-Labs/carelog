@@ -95,3 +95,7 @@ CareLog records what people enter. It never recommends doses, judges safety, or 
 ## 6. Non-goals
 
 Medical advice, dose recommendations, interaction checking, prescription scanning, offline editing, native mobile apps.
+
+## 5. Install CareLog
+
+The public landing has Download CareLog buttons. CareLog is a web app: supported browsers offer a native web-app install prompt; otherwise the button opens clear installation instructions and an Open CareLog link. There are no claimed native Windows/macOS binaries. The manifest uses the existing logo. The service worker never caches records or account API responses, and record access requires connectivity. The landing includes a keyboard-accessible question/answer panel.

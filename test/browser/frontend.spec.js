@@ -6,8 +6,8 @@ test('landing, account, persistent care record and every workspace section work 
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Care changes hands.');
   await page.evaluate(() => document.fonts.ready);
-  await page.screenshot({ path: 'docs/design-concepts/implemented-hero.png' });
-  await page.screenshot({ path: 'docs/design-concepts/implemented-desktop.png', fullPage: true });
+  await page.screenshot({ animations: 'disabled', path: 'docs/design-concepts/implemented-hero.png' });
+  await page.screenshot({ animations: 'disabled', path: 'docs/design-concepts/implemented-desktop.png', fullPage: true });
   await page.keyboard.press('Tab');
   await page.keyboard.press('Enter');
   await expect(page.locator('main')).toBeFocused();
@@ -43,7 +43,7 @@ test('landing, account, persistent care record and every workspace section work 
   await page.getByTestId('field-title').fill('Book Thursday transport');
   await page.getByTestId('modal-submit').click();
   await expect(page.locator('main')).toContainText('Book Thursday transport');
-  await page.screenshot({ path: 'docs/design-concepts/implemented-workspace.png', fullPage: true });
+  await page.screenshot({ animations: 'disabled', path: 'docs/design-concepts/implemented-workspace.png', fullPage: true });
   for (const width of [360, 390, 768]) {
     await page.setViewportSize({ width, height: 844 });
     await page.goto(circleUrl);
@@ -51,7 +51,7 @@ test('landing, account, persistent care record and every workspace section work 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.screenshot({ path: 'docs/design-concepts/implemented-mobile-app.png', fullPage: true });
+  await page.screenshot({ animations: 'disabled', path: 'docs/design-concepts/implemented-mobile-app.png', fullPage: true });
   await page.getByTestId('logout').click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Care changes hands.');
   for (const width of [360, 390, 768, 1024, 1440]) {
@@ -60,9 +60,9 @@ test('landing, account, persistent care record and every workspace section work 
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Toggle navigation' }).click();
-  await expect(page.getByRole('link', { name: 'How it works' })).toBeVisible();
+  await expect(page.locator('#cl-nav-links').getByRole('link', { name: 'How it works' })).toBeVisible();
   await page.getByRole('button', { name: 'Toggle navigation' }).click();
-  await page.screenshot({ path: 'docs/design-concepts/implemented-mobile-landing.png', fullPage: true });
+  await page.screenshot({ animations: 'disabled', path: 'docs/design-concepts/implemented-mobile-landing.png', fullPage: true });
   await expect(page.getByRole('link', { name: 'Create a care circle', exact: true }).last()).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -98,49 +98,59 @@ test('approved hero keeps consistent branding, centered navigation and compact i
     await page.setViewportSize({ width, height });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await expect(page.locator('.cl-check')).toBeVisible();
-    await page.screenshot({ path: `docs/design-concepts/refined-${width}x${height}.png`, fullPage: true });
+    await page.screenshot({ animations: 'disabled', path: `docs/design-concepts/refined-${width}x${height}.png`, fullPage: true });
   }
 });
 
-test('marketing demos explain the workflow, preserve unfinished work and respect reduced motion', async ({ page }) => {
+test('CareLog download, walkthrough, FAQ and reduced motion work', async ({ page }) => {
   await page.goto('/');
   await page.getByTestId('replay-handoff').click();
   expect(await page.evaluate(() => document.querySelector('.cl-story').getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(page.getByTestId('replay-handoff')).toBeHidden();
   expect(await page.evaluate(() => document.querySelector('.cl-story').getAnimations({ subtree: true }).filter(a => a.playState === 'running').length)).toBe(0);
-  await page.getByRole('button', { name: 'Record the small things.', exact: true }).click();
-  await expect(page.getByTestId('workflow-preview')).toContainText('Lunch recorded');
-  await page.getByRole('button', { name: 'Take over with a clear picture.', exact: true }).click();
+  await page.getByRole('button', { name: 'See what needs checking', exact: true }).click();
   await expect(page.getByTestId('workflow-preview')).toContainText('No administration recorded');
-  await page.getByTestId('demo-review').click();
-  await expect(page.locator('.cl-demo-review-status')).toHaveText('Handoff reviewed by Alex');
-  await expect(page.locator('.cl-unfinished-task')).toContainText('Outcome still to be recorded');
-  await page.getByRole('tab', { name: 'Recovery, together', exact: true }).click();
-  await expect(page.getByTestId('family-preview')).toContainText('Jamie’s recovery');
-  await page.keyboard.press('ArrowRight');
-  await expect(page.getByRole('tab', { name: 'A child’s routine', exact: true })).toBeFocused();
-  await expect(page.getByTestId('family-preview')).toContainText('Ellis’s care');
-  await page.screenshot({ path: 'docs/design-concepts/animated-desktop-page.png', fullPage: true });
-  await page.locator('.cl-task-chapter').screenshot({ path: 'docs/design-concepts/animated-task-chapter.png' });
-  await page.locator('.cl-family-chapter').screenshot({ path: 'docs/design-concepts/animated-family-chapter.png' });
+  await page.getByRole('button', { name: 'Carry the work forward', exact: true }).click();
+  await expect(page.getByTestId('workflow-preview')).toContainText('Outcome still to be recorded.');
+  await page.getByRole('tab', { name: 'How do I download CareLog?', exact: true }).click();
+  await expect(page.locator('.ref-faq-answer')).toContainText('installable web app');
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('tab', { name: 'Does it tell me which medication to give?', exact: true })).toBeFocused();
+  await expect(page.locator('.ref-faq-answer')).toContainText('does not recommend doses');
+  await page.locator('.ref-hero').getByRole('button', { name: 'Download CareLog', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('CareLog installs as a web app');
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  for (const path of ['/manifest.webmanifest', '/service-worker.js', '/assets/carelog-192.png', '/assets/carelog-512.png']) {
+    const response = await page.request.get(path);
+    expect(response.ok()).toBeTruthy();
+    if (path.endsWith('.png')) {
+      expect(response.headers()['content-type']).toContain('image/png');
+      expect((await response.body()).subarray(0, 8).toString('hex')).toBe('89504e470d0a1a0a');
+    }
+  }
+  const manifest = await (await page.request.get('/manifest.webmanifest')).json();
+  expect(manifest.name).toBe('CareLog');
+  expect(manifest.display).toBe('standalone');
+  await page.screenshot({ animations: 'disabled', path: 'docs/design-concepts/reference-desktop-page.png', fullPage: true });
+  await page.locator('.ref-detail-world').screenshot({ animations: 'disabled', path: 'docs/design-concepts/reference-teal-section.png' });
+  await page.locator('.ref-workflow').screenshot({ animations: 'disabled', path: 'docs/design-concepts/reference-workflow-section.png' });
+  await page.locator('.ref-faq').screenshot({ animations: 'disabled', path: 'docs/design-concepts/reference-faq-section.png' });
   for (const [width, height] of [[360, 800], [390, 844], [844, 390], [1024, 768], [1440, 1000]]) {
     await page.setViewportSize({ width, height });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    for (const selector of ['.cl-journey', '.cl-task-chapter', '.cl-family-chapter', '.cl-final-chapter']) {
-      expect(await page.locator(selector).evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
-    }
   }
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.screenshot({ path: 'docs/design-concepts/animated-mobile-page.png', fullPage: true });
+  await expect(page.locator('.ref-mobile-walkthrough article')).toHaveCount(5);
+  await page.screenshot({ animations: 'disabled', path: 'docs/design-concepts/reference-mobile-page.png', fullPage: true });
   await page.getByRole('link', { name: 'Sign in', exact: true }).first().click();
   await expect(page.getByTestId('auth-submit')).toBeVisible();
 });
 
-test('scrolling advances the sticky workflow preview', async ({ page }) => {
+test('scrolling advances the reference-style product demonstration', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.cl-journey-step[data-phase="1"]').evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-  await expect(page.getByTestId('workflow-preview')).toContainText('Lunch recorded');
-  await page.locator('.cl-journey-step[data-phase="2"]').evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await page.locator('.ref-scroll-track [data-scene="2"]').evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
   await expect(page.getByTestId('workflow-preview')).toContainText('No administration recorded');
+  await page.locator('.ref-scroll-track [data-scene="4"]').evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await expect(page.getByTestId('workflow-preview')).toContainText('Outcome still to be recorded.');
 });

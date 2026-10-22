@@ -17,3 +17,7 @@ The landing page links to #/login and #/signup. Stable form and workflow test ID
 ## Motion and section color
 
 Use the approved cream hero followed by moss (#E1E6CD), peach (#F2DCC9), eucalyptus (#DCE9E2) and the forest closing section (#193C34). The hero explains a handoff with finite, replayable motion. Workflow previews change on scroll or direct selection; family examples use keyboard-accessible tabs. Reduced-motion mode shows the complete content without positional animation. No scroll hijacking, endless decorative motion or moving clinical records.
+
+## Measured-reference revision (22 October 2026)
+
+Marketing now uses the actual reference fonts: EB Garamond and Figtree. The measured palette is #FFFFEB, #1A1A1A, #034F46 and #E4E4D0. Primary controls retain the approved sage green. The logo master and its DM Sans wordmark remain unchanged. The earlier moss/peach/eucalyptus chapters are superseded; public/reference-page.js, reference-motion.js and reference.css are the canonical marketing implementation. Reference captures and measurements live in docs/reference-audit.

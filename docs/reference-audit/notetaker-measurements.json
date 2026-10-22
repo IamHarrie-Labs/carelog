@@ -1,0 +1,119 @@
+{
+  "headings": [
+    {
+      "font": "\"Eb garamond\", Arial, sans-serif",
+      "lineHeight": "91.2px",
+      "size": "96px",
+      "text": "Meeting notes that get the details right.",
+      "y": 229
+    },
+    {
+      "font": "\"Eb garamond\", Arial, sans-serif",
+      "lineHeight": "71.25px",
+      "size": "75px",
+      "text": "Wispr Notetaker captures the hard-to-spell words and easy-to-miss details.",
+      "y": 1407
+    },
+    {
+      "font": "\"Eb garamond\", Arial, sans-serif",
+      "lineHeight": "75px",
+      "size": "75px",
+      "text": "Fits into your workflow. Doesn't change it.",
+      "y": 7196
+    },
+    {
+      "font": "\"Eb garamond\", Arial, sans-serif",
+      "lineHeight": "45.6px",
+      "size": "48px",
+      "text": "Switch without losing a thing.",
+      "y": 7887
+    },
+    {
+      "font": "\"Eb garamond\", Arial, sans-serif",
+      "lineHeight": "75px",
+      "size": "75px",
+      "text": "Bring Notetaker to your team.",
+      "y": 8356
+    },
+    {
+      "font": "\"Eb garamond\", Arial, sans-serif",
+      "lineHeight": "75px",
+      "size": "75px",
+      "text": "From the firstpeople to use it.",
+      "y": 9118
+    },
+    {
+      "font": "\"Eb garamond\", Arial, sans-serif",
+      "lineHeight": "75px",
+      "size": "75px",
+      "text": "You might be wondering.",
+      "y": 12743
+    },
+    {
+      "font": "\"Eb garamond\", Arial, sans-serif",
+      "lineHeight": "60.8px",
+      "size": "64px",
+      "text": "Level up your note taking.",
+      "y": 13574
+    },
+    {
+      "font": "\"Eb garamond\", Arial, sans-serif",
+      "lineHeight": "102px",
+      "size": "120px",
+      "text": "Put your words to work in more ways than one.",
+      "y": 14569
+    }
+  ],
+  "surfaces": [
+    {
+      "bg": "rgb(26, 26, 26)",
+      "class": "section_nt-testi",
+      "radius": "80px 80px 0px 0px"
+    },
+    {
+      "bg": "rgb(3, 79, 70)",
+      "class": "hero_contain is-green",
+      "radius": "80px 80px 0px 0px"
+    },
+    {
+      "bg": "rgb(228, 228, 208)",
+      "class": "switch_wrap",
+      "radius": "32px"
+    },
+    {
+      "bg": "rgb(26, 26, 26)",
+      "class": "section_new-testi",
+      "radius": "80px 80px 0px 0px"
+    },
+    {
+      "bg": "rgb(255, 169, 70)",
+      "class": "testi_card-bg-color",
+      "radius": "0px"
+    },
+    {
+      "bg": "rgb(255, 108, 76)",
+      "class": "testi_card-bg-color is-red",
+      "radius": "0px"
+    },
+    {
+      "bg": "rgb(240, 215, 255)",
+      "class": "testi_card-bg-color is-purple",
+      "radius": "0px"
+    },
+    {
+      "bg": "rgb(52, 211, 153)",
+      "class": "testi_card-bg-color is-green",
+      "radius": "0px"
+    },
+    {
+      "bg": "rgb(228, 228, 208)",
+      "class": "faq_wrap",
+      "radius": "32px"
+    },
+    {
+      "bg": "rgb(228, 228, 208)",
+      "class": "section_related-blogs-v2 push-down",
+      "radius": "80px 80px 0px 0px"
+    }
+  ]
+}

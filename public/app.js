@@ -458,7 +458,7 @@ export async function route() {
     const inv = hash.match(/^\/invite\/(.+)$/);
     if (!S.me) {
       if (inv) sessionStorage.setItem('cl_invite', inv[1]);
-      if (inv || !['/', '/how-it-works', '/for-families'].includes(hash)) authView(inv?.[1], hash === '/signup' ? 'signup' : undefined);
+      if (inv || !['/', '/how-it-works', '/for-families', '/questions'].includes(hash)) authView(inv?.[1], hash === '/signup' ? 'signup' : undefined);
       else landingView(root);
       return;
     }
@@ -492,3 +492,7 @@ document.querySelector('.skip').addEventListener('click', (event) => {
 });
 window.addEventListener('hashchange', route);
 route();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+}

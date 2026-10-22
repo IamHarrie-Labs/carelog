@@ -97,3 +97,7 @@ Use synthetic data in any public demo. Real health information needs a proper da
 The approved cream, forest and sage design is implemented across the public landing, account forms and all care sections. Brand assets and font files are self-hosted. Sign in at `/#/login`; create an account at `/#/signup`. The TestSprite account forms retain their `data-testid` hooks.
 
 Run `npm run test:browser` for the Playwright journey. It starts a local app with an isolated `browser-tests.db`, creates synthetic users, verifies persistent care records, visits all 12 sections and checks phone/tablet/desktop layouts. The default browser channel is Edge; set `PW_CHANNEL=chrome` if using installed Chrome. API tests remain `npm test`.
+
+The landing was rebuilt from a measured section audit of the supplied Wispr Flow reference. The 36 reference captures and measurements are indexed in [docs/reference-audit/README.md](docs/reference-audit/README.md). EB Garamond and Figtree are locally hosted under their included licenses. The existing CareLog logo master is unchanged.
+
+Download CareLog installs the web app where supported, or shows browser-specific instructions. The app requires connectivity and does not cache care or account data in the service worker. Regenerate its PNG icons from the logo master with `node scripts/create-app-icons.mjs`.
