@@ -68,6 +68,7 @@ test('landing, account, persistent care record and every workspace section work 
 });
 
 test('approved hero keeps consistent branding, centered navigation and compact icons at portrait and landscape widths', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   await page.evaluate(() => document.fonts.ready);
   await expect(page.locator('.cl-story figcaption')).toHaveCount(0);
@@ -99,4 +100,47 @@ test('approved hero keeps consistent branding, centered navigation and compact i
     await expect(page.locator('.cl-check')).toBeVisible();
     await page.screenshot({ path: `docs/design-concepts/refined-${width}x${height}.png`, fullPage: true });
   }
+});
+
+test('marketing demos explain the workflow, preserve unfinished work and respect reduced motion', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('replay-handoff').click();
+  expect(await page.evaluate(() => document.querySelector('.cl-story').getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(page.getByTestId('replay-handoff')).toBeHidden();
+  expect(await page.evaluate(() => document.querySelector('.cl-story').getAnimations({ subtree: true }).filter(a => a.playState === 'running').length)).toBe(0);
+  await page.getByRole('button', { name: 'Record the small things.', exact: true }).click();
+  await expect(page.getByTestId('workflow-preview')).toContainText('Lunch recorded');
+  await page.getByRole('button', { name: 'Take over with a clear picture.', exact: true }).click();
+  await expect(page.getByTestId('workflow-preview')).toContainText('No administration recorded');
+  await page.getByTestId('demo-review').click();
+  await expect(page.locator('.cl-demo-review-status')).toHaveText('Handoff reviewed by Alex');
+  await expect(page.locator('.cl-unfinished-task')).toContainText('Outcome still to be recorded');
+  await page.getByRole('tab', { name: 'Recovery, together', exact: true }).click();
+  await expect(page.getByTestId('family-preview')).toContainText('Jamie’s recovery');
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('tab', { name: 'A child’s routine', exact: true })).toBeFocused();
+  await expect(page.getByTestId('family-preview')).toContainText('Ellis’s care');
+  await page.screenshot({ path: 'docs/design-concepts/animated-desktop-page.png', fullPage: true });
+  await page.locator('.cl-task-chapter').screenshot({ path: 'docs/design-concepts/animated-task-chapter.png' });
+  await page.locator('.cl-family-chapter').screenshot({ path: 'docs/design-concepts/animated-family-chapter.png' });
+  for (const [width, height] of [[360, 800], [390, 844], [844, 390], [1024, 768], [1440, 1000]]) {
+    await page.setViewportSize({ width, height });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    for (const selector of ['.cl-journey', '.cl-task-chapter', '.cl-family-chapter', '.cl-final-chapter']) {
+      expect(await page.locator(selector).evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
+    }
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: 'docs/design-concepts/animated-mobile-page.png', fullPage: true });
+  await page.getByRole('link', { name: 'Sign in', exact: true }).first().click();
+  await expect(page.getByTestId('auth-submit')).toBeVisible();
+});
+
+test('scrolling advances the sticky workflow preview', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.cl-journey-step[data-phase="1"]').evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await expect(page.getByTestId('workflow-preview')).toContainText('Lunch recorded');
+  await page.locator('.cl-journey-step[data-phase="2"]').evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await expect(page.getByTestId('workflow-preview')).toContainText('No administration recorded');
 });

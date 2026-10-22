@@ -13,3 +13,7 @@ Approved direction: the reference-led editorial concept with sage controls and a
 - Copy: plain and calm; no invented testimonials, clinical safety guarantees or compliance claims.
 
 The landing page links to #/login and #/signup. Stable form and workflow test IDs remain in place.
+
+## Motion and section color
+
+Use the approved cream hero followed by moss (#E1E6CD), peach (#F2DCC9), eucalyptus (#DCE9E2) and the forest closing section (#193C34). The hero explains a handoff with finite, replayable motion. Workflow previews change on scroll or direct selection; family examples use keyboard-accessible tabs. Reduced-motion mode shows the complete content without positional animation. No scroll hijacking, endless decorative motion or moving clinical records.

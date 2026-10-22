@@ -1,6 +1,6 @@
 import { h, api, ApiError, friendly, toast, modal, fmtTime, fmtDateTime } from './ui.js';
 import { moreViews } from './more.js';
-import { brand, landingView } from './landing.js';
+import { brand, landingView, cleanupLandingMotion } from './landing.js';
 
 const root = document.getElementById('app');
 const S = { me: null, circles: [], circle: null, role: null, members: [] };
@@ -449,6 +449,7 @@ let busy = false;
 export async function route() {
   if (busy) return; busy = true;
   try {
+    cleanupLandingMotion();
     document.body.classList.remove('marketing');
     const hash = location.hash.replace(/^#/, '') || '/';
     const path = location.pathname;
