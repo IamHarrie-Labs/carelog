@@ -5,7 +5,7 @@ import {
   isDate, isTime, isIso, clean, HttpError,
 } from './lib.js';
 import {
-  circleCtx, currentUser, serializeRecord, visibleRecords, dayView, memberList, canSeePrivate,
+  circleCtx, currentUser, serializeRecord, visibleRecords, dayView, memberList, canSeePrivate, getCookie,
 } from './core.js';
 import { parseQuickLog } from './parse.js';
 import { TEMPLATES } from './templates.js';
@@ -60,8 +60,11 @@ export function createApp(db, { secureCookies = false, serveStaticFiles = true }
   });
 
   app.post('/api/logout', async (c) => {
-    const user = await currentUser(db, c);
-    await db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
+    await currentUser(db, c);
+    // Sign out of this device only. Other devices (or another person's tab) stay signed in.
+    const auth = c.req.header('authorization');
+    const tok = auth?.startsWith('Bearer ') ? auth.slice(7) : getCookie(c, 'cl_session');
+    await db.prepare('DELETE FROM sessions WHERE token = ?').run(tok);
     c.header('Set-Cookie', 'cl_session=; HttpOnly; Path=/; Max-Age=0');
     return c.json({ ok: true });
   });

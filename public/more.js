@@ -55,12 +55,17 @@ export function moreViews(S, { render, can, tz, route }) {
   async function load() {
     const d = await api(`/api/circles/${cid()}/load?days=30`);
     const mine = await api(`/api/circles/${cid()}/checkins`).catch(() => []);
+    const shifts = await api(`/api/circles/${cid()}/shifts`).catch(() => []);
     render(h('div', {}, h('h1', {}, 'Care load'),
       d.imbalance ? h('div', { class: 'alert warn', role: 'alert', testid: 'imbalance' }, d.imbalance.message) : h('div', { class: 'alert ok' }, 'Care hours look reasonably shared.'),
       d.check_in_suggested ? h('div', { class: 'alert info', testid: 'checkin-suggested' }, 'Your last few check-ins were low. Consider asking someone to cover a shift so you can rest.') : null,
       h('div', { class: 'card', testid: 'load-people' }, h('h2', {}, 'Last 30 days'), h('ul', { class: 'plain' }, d.people.map((p) => h('li', {},
         h('div', { class: 'row between' }, h('strong', {}, p.name), h('span', { class: 'small muted' }, `${p.care_hours}h care Â· ${p.respite_hours}h respite Â· ${p.records} entries`)),
         h('div', { class: 'bar', role: 'img', 'aria-label': `${p.share}% of care hours` }, h('span', { style: `width:${p.share}%` })))))),
+      h('div', { class: 'card', testid: 'shifts-list' }, h('h2', {}, 'Recent shifts and breaks'),
+        shifts.length ? h('ul', { class: 'plain small' }, shifts.slice(0, 15).map((s) => h('li', { testid: `shift-${s.id}` },
+          `${s.user_name} · ${s.kind === 'respite' ? 'took a break' : 'provided care'} · ${fmtDateTime(s.starts_at, tz())} to ${fmtDateTime(s.ends_at, tz())}`)))
+          : h('p', { class: 'muted', testid: 'no-shifts' }, 'No shifts logged yet.')),
       can('shifts') ? h('div', { class: 'card' }, h('div', { class: 'row' },
         h('button', { testid: 'add-shift', onclick: async () => {
           const out = await modal({ title: 'Log a shift or a break', submit: 'Save',
