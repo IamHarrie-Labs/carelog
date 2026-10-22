@@ -64,7 +64,7 @@ export function moreViews(S, { render, can, tz, route }) {
         h('div', { class: 'bar', role: 'img', 'aria-label': `${p.share}% of care hours` }, h('span', { style: `width:${p.share}%` })))))),
       h('div', { class: 'card', testid: 'shifts-list' }, h('h2', {}, 'Recent shifts and breaks'),
         shifts.length ? h('ul', { class: 'plain small' }, shifts.slice(0, 15).map((s) => h('li', { testid: `shift-${s.id}` },
-          `${s.user_name} · ${s.kind === 'respite' ? 'took a break' : 'provided care'} · ${fmtDateTime(s.starts_at, tz())} to ${fmtDateTime(s.ends_at, tz())}`)))
+          `${s.user_name} Â· ${s.kind === 'respite' ? 'took a break' : 'provided care'} Â· ${fmtDateTime(s.starts_at, tz())} to ${fmtDateTime(s.ends_at, tz())}`)))
           : h('p', { class: 'muted', testid: 'no-shifts' }, 'No shifts logged yet.')),
       can('shifts') ? h('div', { class: 'card' }, h('div', { class: 'row' },
         h('button', { testid: 'add-shift', onclick: async () => {
@@ -74,7 +74,7 @@ export function moreViews(S, { render, can, tz, route }) {
               { name: 'starts_at', label: 'Start', type: 'datetime-local', required: true },
               { name: 'ends_at', label: 'End', type: 'datetime-local', required: true },
             ],
-            onSubmit: (v) => api(`/api/circles/${cid()}/shifts`, { method: 'POST', body: { kind: v.kind, starts_at: localInputToIso(v.starts_at), ends_at: localInputToIso(v.ends_at) } }) });
+            onSubmit: (v) => api(`/api/circles/${cid()}/shifts`, { method: 'POST', body: { kind: v.kind, starts_at: localInputToIso(v.starts_at, tz()), ends_at: localInputToIso(v.ends_at, tz()) } }) });
           if (out) route();
         } }, 'Log a shift'),
         h('button', { testid: 'add-checkin', onclick: async () => {
@@ -95,7 +95,7 @@ export function moreViews(S, { render, can, tz, route }) {
           { name: 'location', label: 'Where' },
           { name: 'taker_id', label: 'Who is taking them?', type: 'select', options: [{ value: '', label: 'Nobody yet' }, ...people().map((m) => ({ value: m.id, label: m.name }))] },
         ],
-        onSubmit: (v) => api(`/api/circles/${cid()}/appointments`, { method: 'POST', body: { title: v.title, location: v.location, starts_at: localInputToIso(v.starts_at), taker_id: v.taker_id ? Number(v.taker_id) : undefined } }) });
+        onSubmit: (v) => api(`/api/circles/${cid()}/appointments`, { method: 'POST', body: { title: v.title, location: v.location, starts_at: localInputToIso(v.starts_at, tz()), taker_id: v.taker_id ? Number(v.taker_id) : undefined } }) });
       if (out) route();
     } }, 'Add appointment');
     render(h('div', {}, h('div', { class: 'row between' }, h('h1', {}, 'Appointments'), can('appointments') ? add : null),

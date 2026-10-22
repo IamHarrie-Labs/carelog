@@ -126,4 +126,18 @@ export function modal({ title, intro, fields = [], submit = 'Save', danger = fal
 export const fmtTime = (iso, tz) => iso ? new Intl.DateTimeFormat([], { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(iso)) : '';
 export const fmtDateTime = (iso, tz) => iso ? new Intl.DateTimeFormat([], { timeZone: tz, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(iso)) : '';
 export const money = (cents, cur = 'USD') => new Intl.NumberFormat([], { style: 'currency', currency: cur }).format(cents / 100);
-export const localInputToIso = (v) => (v ? new Date(v).toISOString() : undefined);
+// A datetime-local value has no zone. Read it as wall-clock time in the circle's timezone,
+// the same zone the lists display in, so what someone types is what everyone sees.
+const zoneOffset = (ms, tz) => {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    .formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
+  return Date.UTC(+p.year, p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - ms;
+};
+export const localInputToIso = (v, tz) => {
+  if (!v) return undefined;
+  if (!tz) return new Date(v).toISOString();
+  const [y, mo, d, hh, mi] = v.split(/[-T:]/).map(Number);
+  const wall = Date.UTC(y, mo - 1, d, hh, mi);
+  const guess = wall - zoneOffset(wall, tz);
+  return new Date(wall - zoneOffset(guess, tz)).toISOString();
+};
