@@ -91,3 +91,14 @@ test('passwords are hashed and bad logins are rejected', async () => {
   assert.equal((await call('POST', '/api/signup', { email: 'z@example.com', name: 'Z', password: 'password123' })).status, 409);
   assert.equal((await call('POST', '/api/signup', { email: 'q@example.com', name: 'Q', password: 'short' })).body.error, 'password_too_short');
 });
+
+test('signing out ends only that session; the same person stays signed in elsewhere', async () => {
+  const { call } = await setup();
+  const first = await call('POST', '/api/signup', { email: 'dev@example.com', name: 'Dev', password: 'password123' });
+  const second = await call('POST', '/api/login', { email: 'dev@example.com', password: 'password123' });
+  assert.notEqual(first.body.token, second.body.token);
+  assert.equal((await call('GET', '/api/me', null, first.body.token)).status, 200);
+  assert.equal((await call('POST', '/api/logout', null, first.body.token)).status, 200);
+  assert.equal((await call('GET', '/api/me', null, first.body.token)).status, 401);
+  assert.equal((await call('GET', '/api/me', null, second.body.token)).status, 200);
+});

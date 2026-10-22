@@ -270,7 +270,10 @@ export function registerExtras(app, db, { need, body, createRecord }) {
     const remaining = b.remaining !== undefined ? Number(b.remaining) : s.remaining;
     need(Number.isInteger(remaining) && remaining >= 0, 'invalid_supply');
     await db.prepare('UPDATE supplies SET remaining = ?, updated_at = ? WHERE id = ?').run(remaining, now(), s.id);
-    if (remaining > s.remaining) {
+    // Only close the refill item once the supply is genuinely no longer low. A partial restock that is
+    // still under the warning level leaves the same item open instead of closing it and opening another.
+    const stillLow = s.per_day > 0 && Math.floor(remaining / s.per_day) <= s.warn_days;
+    if (remaining > s.remaining && !stillLow) {
       await db.prepare("UPDATE open_items SET resolved_at = ?, resolved_by = ?, outcome = 'Restocked' WHERE circle_id = ? AND source = ? AND resolved_at IS NULL").run(now(), user.id, circle.id, `supply:${s.id}`);
     }
     await checkRefill(circle, { ...s, remaining }, user.id);
