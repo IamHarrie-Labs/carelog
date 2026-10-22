@@ -166,3 +166,21 @@ test('templates give a starting schedule for different kinds of care', async () 
   const sched = await call('GET', `/api/circles/${c.body.id}/schedule`, null, sam.token);
   assert.ok(sched.body.some((s) => s.title === 'Dinner'));
 });
+
+test('a partial restock that is still low keeps the same refill item open instead of closing and reopening it', async () => {
+  const { call, circleWith } = await setup();
+  const { sam, cid } = await circleWith();
+  const s = await call('POST', `/api/circles/${cid}/supplies`, { name: 'Insulin', remaining: 2, per_day: 1 }, sam.token);
+  const before = await call('GET', `/api/circles/${cid}/items?all=1`, null, sam.token);
+  const refill = before.body.find((i) => /Refill Insulin/.test(i.title));
+  await call('PATCH', `/api/circles/${cid}/supplies/${s.body.id}`, { remaining: 4 }, sam.token);
+  const mid = await call('GET', `/api/circles/${cid}/items?all=1`, null, sam.token);
+  const refills = mid.body.filter((i) => /Refill Insulin/.test(i.title));
+  assert.equal(refills.length, 1);
+  assert.equal(refills[0].id, refill.id);
+  assert.equal(refills[0].resolved_at, null);
+  await call('PATCH', `/api/circles/${cid}/supplies/${s.body.id}`, { remaining: 30 }, sam.token);
+  const after = await call('GET', `/api/circles/${cid}/items?all=1`, null, sam.token);
+  assert.equal(after.body.find((i) => i.id === refill.id).outcome, 'Restocked');
+  assert.equal(after.body.filter((i) => /Refill Insulin/.test(i.title)).length, 1);
+});
