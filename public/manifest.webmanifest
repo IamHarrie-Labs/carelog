@@ -1,0 +1,16 @@
+{
+  "id": "/",
+  "name": "CareLog",
+  "short_name": "CareLog",
+  "description": "A shared care record for families taking turns.",
+  "start_url": "/#/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffeb",
+  "theme_color": "#034f46",
+  "icons": [
+    { "src": "/assets/carelog-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/carelog-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/carelog-logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

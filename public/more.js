@@ -64,7 +64,7 @@ export function moreViews(S, { render, can, tz, route }) {
         h('div', { class: 'bar', role: 'img', 'aria-label': `${p.share}% of care hours` }, h('span', { style: `width:${p.share}%` })))))),
       h('div', { class: 'card', testid: 'shifts-list' }, h('h2', {}, 'Recent shifts and breaks'),
         shifts.length ? h('ul', { class: 'plain small' }, shifts.slice(0, 15).map((s) => h('li', { testid: `shift-${s.id}` },
-          `${s.user_name} · ${s.kind === 'respite' ? 'took a break' : 'provided care'} · ${fmtDateTime(s.starts_at, tz())} to ${fmtDateTime(s.ends_at, tz())}`)))
+          `${s.user_name} Â· ${s.kind === 'respite' ? 'took a break' : 'provided care'} Â· ${fmtDateTime(s.starts_at, tz())} to ${fmtDateTime(s.ends_at, tz())}`)))
           : h('p', { class: 'muted', testid: 'no-shifts' }, 'No shifts logged yet.')),
       can('shifts') ? h('div', { class: 'card' }, h('div', { class: 'row' },
         h('button', { testid: 'add-shift', onclick: async () => {
@@ -74,7 +74,7 @@ export function moreViews(S, { render, can, tz, route }) {
               { name: 'starts_at', label: 'Start', type: 'datetime-local', required: true },
               { name: 'ends_at', label: 'End', type: 'datetime-local', required: true },
             ],
-            onSubmit: (v) => api(`/api/circles/${cid()}/shifts`, { method: 'POST', body: { kind: v.kind, starts_at: localInputToIso(v.starts_at), ends_at: localInputToIso(v.ends_at) } }) });
+            onSubmit: (v) => api(`/api/circles/${cid()}/shifts`, { method: 'POST', body: { kind: v.kind, starts_at: localInputToIso(v.starts_at, tz()), ends_at: localInputToIso(v.ends_at, tz()) } }) });
           if (out) route();
         } }, 'Log a shift'),
         h('button', { testid: 'add-checkin', onclick: async () => {
@@ -88,14 +88,14 @@ export function moreViews(S, { render, can, tz, route }) {
   async function appointments() {
     const list = await api(`/api/circles/${cid()}/appointments`);
     const add = h('button', { class: 'primary', testid: 'add-appointment', onclick: async () => {
-      const out = await modal({ title: 'Add an appointment', submit: 'Add', intro: 'If nobody is taking them, it becomes an open item so it cannot be forgotten.',
+      const out = await modal({ title: 'Add an appointment', submit: 'Add', intro: 'If no one is assigned, we will add a task to arrange who is going.',
         fields: [
           { name: 'title', label: 'What is it?', required: true, placeholder: 'e.g. Cardiology check-up' },
           { name: 'starts_at', label: 'When', type: 'datetime-local', required: true },
           { name: 'location', label: 'Where' },
           { name: 'taker_id', label: 'Who is taking them?', type: 'select', options: [{ value: '', label: 'Nobody yet' }, ...people().map((m) => ({ value: m.id, label: m.name }))] },
         ],
-        onSubmit: (v) => api(`/api/circles/${cid()}/appointments`, { method: 'POST', body: { title: v.title, location: v.location, starts_at: localInputToIso(v.starts_at), taker_id: v.taker_id ? Number(v.taker_id) : undefined } }) });
+        onSubmit: (v) => api(`/api/circles/${cid()}/appointments`, { method: 'POST', body: { title: v.title, location: v.location, starts_at: localInputToIso(v.starts_at, tz()), taker_id: v.taker_id ? Number(v.taker_id) : undefined } }) });
       if (out) route();
     } }, 'Add appointment');
     render(h('div', {}, h('div', { class: 'row between' }, h('h1', {}, 'Appointments'), can('appointments') ? add : null),
@@ -126,7 +126,7 @@ export function moreViews(S, { render, can, tz, route }) {
           const out = await modal({ title: `Update ${s.name}`, submit: 'Save', fields: [{ name: 'remaining', label: 'How many are left now?', type: 'number', min: 0, value: s.remaining, required: true }],
             onSubmit: (v) => api(`/api/circles/${cid()}/supplies/${s.id}`, { method: 'PATCH', body: { remaining: Number(v.remaining) } }) });
           if (out) route();
-        } }, 'Update count') : null))) : h('p', { class: 'muted' }, 'Nothing tracked yet.'))), 'supplies');
+        } }, 'Update count') : null))) : h('p', { class: 'muted' }, 'Add supplies you want to keep an eye on.'))), 'supplies');
   }
 
   async function documents() {
@@ -153,7 +153,7 @@ export function moreViews(S, { render, can, tz, route }) {
     render(h('div', {}, h('h1', {}, 'Weekly digest'),
       h('div', { class: 'card', testid: 'digest' }, h('ul', { class: 'plain' }, d.summary.map((l) => h('li', {}, l)))),
       h('div', { class: 'card', testid: 'patterns' }, h('h2', {}, 'Worth mentioning to the doctor'),
-        p.patterns.length ? h('ul', { class: 'plain' }, p.patterns.map((x) => h('li', {}, x.message))) : h('p', { class: 'muted' }, 'No repeated notes this week.'),
+        p.patterns.length ? h('ul', { class: 'plain' }, p.patterns.map((x) => h('li', {}, x.message))) : h('p', { class: 'muted' }, 'No recurring notes found this week.'),
         h('p', { class: 'small muted' }, p.disclaimer))), 'digest');
   }
 

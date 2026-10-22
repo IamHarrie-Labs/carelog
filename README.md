@@ -3,8 +3,9 @@
 **A shared care record for families who take turns looking after someone.**
 Who did what, a clear handover when care passes from one person to the next, and open items that never quietly disappear.
 
-- **Live app:** _set after first deploy_ (see [Deploy](#deploy))
-- **Demo login:** `sam@demo.carelog.test` / `alex@demo.carelog.test`, password `carelog-demo-2026` (synthetic data only; run `npm run seed`)
+- **Live app:** https://carelog-sigma.vercel.app
+- **Requirements the browser suite is generated from:** [docs/PRD.md](docs/PRD.md)
+- **Try it:** create your own account on the sign-in page. No email is sent and no real data is needed; use made-up names.
 - **Built for:** TestSprite Hackathon Season 4
 
 ## The problem
@@ -90,3 +91,13 @@ The same record works anywhere responsibility for a person changes hands: newbor
 ## Privacy
 
 Use synthetic data in any public demo. Real health information needs a proper data-protection review before real families use this.
+
+## Editorial frontend
+
+The approved cream, forest and sage design is implemented across the public landing, account forms and all care sections. Brand assets and font files are self-hosted. Sign in at `/#/login`; create an account at `/#/signup`. The TestSprite account forms retain their `data-testid` hooks.
+
+Run `npm run test:browser` for the Playwright journey. It starts a local app with an isolated `browser-tests.db`, creates synthetic users, verifies persistent care records, visits all 12 sections and checks phone/tablet/desktop layouts. The default browser channel is Edge; set `PW_CHANNEL=chrome` if using installed Chrome. API tests remain `npm test`.
+
+The landing was rebuilt from a measured section audit of the supplied Wispr Flow reference. The 36 reference captures and measurements are indexed in [docs/reference-audit/README.md](docs/reference-audit/README.md). EB Garamond and Figtree are locally hosted under their included licenses. The existing CareLog logo master is unchanged.
+
+CareLog opens in your browser. Sign in to view your circle, or create an account to start one. The landing page uses the same logo as account and workspace pages.

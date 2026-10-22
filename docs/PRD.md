@@ -21,7 +21,7 @@ CareLog records what people enter. It never recommends doses, judges safety, or 
 
 ## 3. Sign-in
 
-- The landing page opens on the **Sign in** form: email, password and one **Sign in** button (`auth-submit`). A link "Create an account" (`mode-signup`) switches to the sign-up form, whose button reads **Create account**. A link "Go to sign in" (`mode-login`) switches back.
+- The public landing page has a **Sign in** link to `#/login` and **Create a care circle** links to `#/signup`. Sign in opens the account form: email, password and one **Sign in** button (`auth-submit`). A link "Create an account" (`mode-signup`) switches to the sign-up form, whose button reads **Create account**. A link "Go to sign in" (`mode-login`) switches back.
 - Sign-up needs a name, a valid email and a password of at least 8 characters.
 - Duplicate email: show "An account with that email already exists."
 - Wrong password: show "That email and password do not match."
@@ -95,3 +95,7 @@ CareLog records what people enter. It never recommends doses, judges safety, or 
 ## 6. Non-goals
 
 Medical advice, dose recommendations, interaction checking, prescription scanning, offline editing, native mobile apps.
+
+## 5. Install CareLog
+
+The public landing directs people to sign in or create an account. It has no download buttons. A green walkthrough explains recording, corrections, missing records, handoff review and unfinished tasks. The landing includes a keyboard-accessible question/answer panel and uses the same logo as account and workspace pages.
