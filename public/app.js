@@ -53,13 +53,16 @@ function shell(content, tab) {
   }
   return [h('div', { class: 'cl-app-layout' },
     h('aside', { class: 'cl-sidebar' }, brand(),
-      S.circle ? h('a', { class: 'cl-recipient', href: '#/' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.circle.recipient_name.slice(0, 1)), h('span', {}, h('strong', {}, S.circle.recipient_name), h('small', {}, 'Switch care circle ↗'))) : h('p', { class: 'cl-sidebar-intro' }, 'One shared record for the people who care.'),
+      S.circle ? h('a', { class: 'cl-recipient', href: '#/' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.circle.recipient_name.slice(0, 1)), h('span', {}, h('strong', {}, S.circle.recipient_name), h('small', {}, 'Switch care circle ↗'))) : null,
       h('nav', { class: 'cl-side-nav', 'aria-label': 'Care circle sections' }, links.length ? links : h('a', { href: '#/', 'aria-current': 'page' }, 'Your care circles')),
-      h('div', { class: 'cl-sidebar-bottom' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.me?.name.slice(0, 1) || 'C'), h('span', {}, h('strong', { testid: 'whoami' }, S.me?.name || 'CareLog'), h('small', {}, S.role || 'Your workspace')), S.me ? h('button', { class: 'cl-signout', testid: 'logout', onclick: logout }, 'Sign out') : null)),
+      h('div', { class: 'cl-sidebar-bottom' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.me?.name.slice(0, 1) || 'C'), h('span', {}, h('strong', { testid: 'whoami' }, S.me?.name || 'CareLog'), h('small', {}, S.role ? cap(S.role) : 'Your workspace')), S.me ? h('button', { class: 'cl-signout', testid: 'logout', onclick: logout }, 'Sign out') : null)),
     h('div', { class: 'cl-workspace' },
-      h('header', { class: 'cl-workspace-header' }, h('p', {}, 'CareLog', h('span', { 'aria-hidden': 'true' }, ' / '), title), S.circle && (can('emergency') || can('emergency_view')) ? h('a', { class: 'cl-emergency-link', href: circleLink(S.circle.id, 'emergency') }, 'Emergency packet ↗') : h('span', { class: 'small muted' }, 'Care, shared clearly.')),
-      h('main', { id: 'main', class: 'wrap cl-app-main' }, sectionInfo[tab] ? h('p', { class: 'cl-page-context' }, sectionInfo[tab][1]) : null, content)))];
+      h('header', { class: 'cl-workspace-header' }, h('p', {}, 'CareLog', h('span', { 'aria-hidden': 'true' }, ' / '), title), S.circle && (can('emergency') || can('emergency_view')) ? h('a', { class: 'cl-emergency-link', href: circleLink(S.circle.id, 'emergency') }, 'Emergency packet ↗') : null),
+      h('main', { id: 'main', class: 'wrap cl-app-main' }, content)))];
 }
+const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
+// '2026-10-23' as 'Thursday 23 October', read in UTC so the date never shifts.
+const longDate = (d) => new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${d}T12:00:00Z`));
 const render = (content, tab) => root.replaceChildren(...shell(content, tab).filter(Boolean));
 
 async function logout() {
@@ -127,12 +130,18 @@ async function homeView() {
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
   const templates = await api('/api/templates');
   const list = S.circles.length
-    ? h('ul', { class: 'plain', testid: 'circle-list' }, S.circles.map((c) => h('li', {}, h('a', { href: circleLink(c.id, 'today'), testid: `circle-${c.id}` }, c.name), ' ', h('span', { class: 'badge' }, c.role), ' ', h('span', { class: 'muted small' }, `caring for ${c.recipient_name}`))))
-    : h('p', { class: 'muted', testid: 'no-circles' }, 'Start a care circle, or join one using an invitation from your family.');
-  render(h('div', {},
-    h('h1', {}, 'Your care circles'),
-    h('div', { class: 'card' }, list),
-    h('button', { class: 'primary', testid: 'new-circle', onclick: async () => {
+    ? h('ul', { class: 'cl-circle-list', testid: 'circle-list' }, S.circles.map((c) => h('li', {},
+      h('a', { class: 'cl-circle-card', href: circleLink(c.id, 'today'), testid: `circle-${c.id}` },
+        h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, c.recipient_name.slice(0, 1)),
+        h('span', { class: 'cl-circle-text' }, h('strong', {}, c.name), h('small', {}, `Caring for ${c.recipient_name}`)),
+        h('span', { class: 'badge' }, cap(c.role)),
+        h('span', { class: 'cl-circle-open', 'aria-hidden': 'true' }, 'Open →')))))
+    : h('div', { class: 'cl-empty', testid: 'no-circles' },
+      h('h2', {}, 'Start with one care circle'),
+      h('p', { class: 'muted' }, 'A care circle is one shared record for one person. Create it, then invite the family and carers who share the care.'),
+      h('ol', { class: 'cl-steps' }, h('li', {}, 'Create a circle for the person you care for'), h('li', {}, 'Invite family and carers from People'), h('li', {}, 'Record care and hand over clearly')),
+      h('p', { class: 'small muted' }, 'Been invited? Open the link you were sent and you will join automatically.'));
+  const newBtn = h('button', { class: 'primary', testid: 'new-circle', onclick: async () => {
       const r = await modal({
         title: 'Create a care circle',
         intro: 'One circle per person being cared for.',
@@ -141,13 +150,18 @@ async function homeView() {
           { name: 'name', label: 'Circle name', required: true, placeholder: "e.g. Dad's care" },
           { name: 'recipient_name', label: 'Who is being cared for?', required: true, placeholder: 'e.g. Dad' },
           { name: 'kind', label: 'Type of care', type: 'select', value: 'adult', options: Object.entries(templates).map(([k, v]) => ({ value: k, label: v.label })) },
-          { name: 'timezone', label: 'Time zone', value: tz, help: 'Schedules run on this clock.' },
+          { name: 'timezone', label: 'Time zone', type: 'select', value: tz, help: 'Schedules and times run on this clock.',
+            options: (Intl.supportedValuesOf ? Intl.supportedValuesOf('timeZone') : [tz]).concat(Intl.supportedValuesOf?.('timeZone').includes(tz) ? [] : [tz])
+              .map((z) => ({ value: z, label: z.replace(/_/g, ' ').replace(/^(.*)\/([^/]+)$/, '$2 ($1)') })) },
           { name: 'apply_template', label: 'Start with an example daily schedule (you can edit it)', type: 'checkbox', value: true },
         ],
         onSubmit: (v) => api('/api/circles', { method: 'POST', body: v }),
       });
       if (r?.id) { await loadMe(); nav(circleLink(r.id, 'today')); }
-    } }, 'Create a care circle')));
+    } }, 'Create a care circle');
+  render(h('div', {},
+    h('div', { class: 'row between' }, h('h1', {}, 'Your care circles'), newBtn),
+    S.circles.length ? list : h('div', { class: 'card' }, list)));
 }
 
 // ---------- circle loader ----------
@@ -229,7 +243,7 @@ async function todayView() {
   } }, 'Add a note');
 
   render(h('div', {},
-    h('div', { class: 'row between' }, h('h1', {}, `Today for ${S.circle.recipient_name}`), h('span', { class: 'muted', testid: 'today-date' }, data.date)),
+    h('div', { class: 'row between' }, h('h1', {}, `Today for ${S.circle.recipient_name}`), h('time', { class: 'muted', testid: 'today-date', datetime: data.date }, longDate(data.date))),
     can('write_record') ? h('div', { class: 'card' }, h('h2', {}, 'Quick log'), quickForm) : null,
     h('div', { class: 'card', testid: 'schedule' },
       h('h2', {}, 'Schedule'),
