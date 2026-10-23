@@ -9,13 +9,17 @@ export const getCookie = (c, name) => {
   return null;
 };
 
+// Sign-ins last 30 days, the same as the cookie. Older rows no longer count as signed in.
+export const SESSION_DAYS = 30;
+export const sessionCutoff = () => new Date(Date.now() - SESSION_DAYS * 86400e3).toISOString();
+
 export async function currentUser(db, c) {
   const auth = c.req.header('authorization');
   const tok = auth?.startsWith('Bearer ') ? auth.slice(7) : getCookie(c, 'cl_session');
   if (!tok) throw new HttpError(401, 'not_signed_in');
   const user = await db.prepare(
-    'SELECT u.id, u.email, u.name, u.lang FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token = ?'
-  ).get(tok);
+    'SELECT u.id, u.email, u.name, u.lang FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token = ? AND s.created_at >= ?'
+  ).get(tok, sessionCutoff());
   if (!user) throw new HttpError(401, 'not_signed_in');
   return user;
 }
