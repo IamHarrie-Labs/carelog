@@ -252,3 +252,27 @@
  .ref-workflow { padding-top:80px; }
 }
 @media(prefers-reduced-motion:reduce) { .ref-replay { display:none; } .ref-situation { position:relative; top:auto!important; } }
+
+/* ---------- Layout polish (Oct 23) ---------- */
+/* Walkthrough: equal side columns so the example card sits on the page's centre line. */
+.ref-walkthrough-sticky { grid-template-columns:minmax(180px,1fr) minmax(300px,430px) minmax(180px,1fr); gap:56px; }
+.ref-scene-nav { justify-self:end; width:200px; }
+.ref-scene-copy { justify-self:start; max-width:340px; }
+@media(max-width:1180px) and (min-width:901px) { .ref-walkthrough-sticky { grid-template-columns:minmax(150px,1fr) minmax(270px,400px) minmax(150px,1fr); gap:28px; } .ref-scene-nav { width:160px; } }
+
+/* Footer: same 1180px measure as the page, a clear grid, and a bottom bar. */
+.ref-footer { max-width:1180px; padding:96px 32px 40px; }
+.ref-footer-grid { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:48px; padding-bottom:56px; border-bottom:1px solid #e4e4d0; }
+.ref-footer-brand p { margin-top:18px; max-width:30ch; font-size:15px; line-height:1.55; color:#6a6a60; }
+.ref-footer-grid nav { display:flex; flex-direction:column; align-items:flex-start; gap:14px; }
+.ref-footer-grid nav .ref-label { margin-bottom:6px; font-size:12px; }
+.ref-footer-grid nav a { font-size:15px; color:#1a1a1a; text-decoration:none; }
+.ref-footer-grid nav a:hover { text-decoration:underline; text-underline-offset:3px; }
+.ref-footer-bar { display:flex; justify-content:space-between; gap:24px; padding-top:24px; font-size:13px; color:#73736a; }
+@media(max-width:760px) {
+  .ref-footer { padding:64px 22px 32px; }
+  .ref-footer-grid { grid-template-columns:1fr 1fr; gap:36px 24px; padding-bottom:40px; }
+  .ref-footer-brand { grid-column:1/-1; }
+  .ref-footer-bar { flex-direction:column; gap:6px; }
+}
+.ref-faq { padding-bottom:72px; }
