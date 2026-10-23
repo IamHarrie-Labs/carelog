@@ -199,3 +199,44 @@ dialog button.primary { background:#d2e5ce; color:#193c34; border-color:#506745;
  .cl-conversation,.cl-records { flex:auto; width:100%; }
  .cl-conversation { width:fit-content; }
 }
+
+/* ---------- Product polish (Oct 23) ---------- */
+/* Confirmations: one calm stack in the corner, never a slab over the content. */
+#toast { background:none; position:fixed; left:auto; right:24px; bottom:24px; transform:none; display:flex; flex-direction:column; align-items:flex-end; gap:8px; z-index:40; pointer-events:none; }
+#toast div { pointer-events:auto; display:flex; align-items:center; gap:10px; margin:0; background:#193c34; color:#fffef0; font:500 14px/1.4 'DM Sans',sans-serif; padding:12px 16px; border-radius:10px; box-shadow:0 10px 30px #0b261f33; max-width:360px; }
+#toast div::before { content:''; flex:none; width:8px; height:8px; border-radius:50%; background:#cfe3b8; }
+@media(max-width:760px) { #toast { left:16px; right:16px; bottom:16px; align-items:stretch; } #toast div { max-width:none; } }
+
+/* Labels read as words, not data: 'Owner', 'Observation', 'Given by …'. */
+.badge::first-letter { text-transform:uppercase; }
+
+/* Forms: one size, one radius, brand-coloured controls everywhere. */
+input, select, textarea { font-size:15px; }
+select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23193c34' stroke-width='1.6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:38px; }
+input[type=checkbox], input[type=radio] { accent-color:#193c34; width:18px; height:18px; vertical-align:-3px; }
+dialog label { font-size:13px; color:#3d5a50; }
+dialog .field .small, dialog .help { font-size:12.5px; }
+
+/* Your care circles */
+.cl-circle-list { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+.cl-circle-card { display:flex; align-items:center; gap:14px; padding:14px 16px; border:1px solid #e1e5d3; border-radius:12px; background:#fffff7; color:#193c34; text-decoration:none; transition:border-color .15s, background .15s; }
+.cl-circle-card:hover { border-color:#9fb894; background:#fbfdf2; }
+.cl-circle-card:focus-visible { outline:2px solid #668363; outline-offset:2px; }
+.cl-circle-card .cl-avatar { width:40px; height:40px; font-size:16px; }
+.cl-circle-text { display:flex; flex-direction:column; flex:1; min-width:0; }
+.cl-circle-text strong { font-size:16px; font-weight:600; }
+.cl-circle-text small { font-size:13px; color:#5f6f68; }
+.cl-circle-open { font-size:13px; color:#506745; white-space:nowrap; }
+.cl-empty { padding:8px 4px; }
+.cl-empty h2 { font-size:20px; font-weight:500; margin:0 0 6px; }
+.cl-steps { margin:16px 0 14px; padding-left:20px; display:grid; gap:6px; color:#193c34; }
+
+/* Sidebar markers: a soft dot instead of a hollow square. */
+.cl-nav-dot { border-radius:50%; width:6px; height:6px; }
+
+/* Landing nav: a short label on phones so the header stays on one row. */
+.ref-label-short { display:none; }
+@media(max-width:520px) { .ref-label-long { display:none; } .ref-label-short { display:inline; } }
+.cl-app-main .cl-steps { list-style:decimal; }
+.cl-app-main .cl-steps > li { padding:0 0 0 4px; border:0; margin:0; font-size:15px; }
+.cl-app-main .cl-circle-list > li { padding:0; border:0; }
