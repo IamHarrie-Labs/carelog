@@ -426,7 +426,8 @@ async function peopleView() {
     });
     if (out?.token) {
       const link = `${location.origin}/#/invite/${out.token}`;
-      await modal({ title: 'Invite link', submit: 'Done', intro: 'Send this link to the person. It works once.', fields: [{ name: 'link', label: 'Link', value: link }] });
+      const here = h('p', { class: 'small' }, 'Is the person with you? ', h('a', { href: `#/invite/${out.token}`, testid: 'open-invite-here', onclick: () => document.getElementById('modal').close() }, 'Open the invite on this device'));
+      await modal({ title: 'Invite link', submit: 'Done', intro: 'Send this link to the person. It works once.', extra: here, fields: [{ name: 'link', label: 'Link', value: link }] });
     }
   } }, 'Invite someone');
   render(h('div', {}, h('div', { class: 'row between' }, h('h1', {}, 'People'), can('members') ? invite : null),
@@ -455,6 +456,21 @@ async function publicEmergency(token) {
     null)));
 }
 
+// An invite opened by someone already in the circle is usually being set up for a person sitting
+// next to them. Offer to sign out on this device and keep the invite for the new person.
+function inviteForSomeoneElse(tok) {
+  render(h('div', { class: 'card', testid: 'invite-someone-else' },
+    h('h1', {}, 'This invite is for someone else'),
+    h('p', {}, `You are already in this care circle as ${S.me.name}. If the person you invited is with you, sign out so they can join on this device.`),
+    h('div', { class: 'row' },
+      h('button', { class: 'primary', testid: 'invite-switch', onclick: async () => {
+        try { await api('/api/logout', { method: 'POST' }); } catch { /* already signed out */ }
+        S.me = null; S.circle = null; sessionStorage.setItem('cl_invite', tok);
+        nav(`#/invite/${tok}`); route();
+      } }, 'Sign out so they can join'),
+      h('a', { class: 'btn', href: '#/' }, 'Back to my circles'))));
+}
+
 // ---------- router ----------
 let busy = false;
 let routePending = false;
@@ -481,7 +497,10 @@ export async function route() {
         const r = await api(`/api/invites/${pending}/accept`, { method: 'POST' });
         await loadMe(); toast('You have joined the care circle.'); S.circle = null;
         busy = false; nav(circleLink(r.circle_id, 'today')); return;
-      } catch (e) { toast(friendly(e)); if (inv) { busy = false; nav('#/'); return; } }
+      } catch (e) {
+        if (inv && e.message === 'already_member') { inviteForSomeoneElse(inv[1]); return; }
+        toast(friendly(e)); if (inv) { busy = false; nav('#/'); return; }
+      }
     }
     const m = hash.match(/^\/c\/(\d+)\/(\w+)$/);
     if (!m) { S.circle = null; await homeView(); return; }

@@ -151,3 +151,30 @@ test('scrolling advances the reference-style product demonstration', async ({ pa
   await page.locator('.ref-scroll-track [data-scene="4"]').evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
   await expect(page.getByTestId('workflow-preview')).toContainText('Outcome still to be recorded.');
 });
+
+test('an invite can be handed to someone on the same device', async ({ page }) => {
+  const stamp = Date.now();
+  const signup = async (name, email) => {
+    await page.getByTestId('auth-name').fill(name);
+    await page.getByTestId('auth-email').fill(email);
+    await page.getByTestId('auth-password').fill('synthetic-test-password');
+    await page.getByTestId('auth-submit').click();
+  };
+  await page.goto('/#/signup');
+  await signup('Owner Ola', `ola.${stamp}@example.test`);
+  await page.getByTestId('new-circle').click();
+  await page.getByTestId('field-name').fill('Same device circle');
+  await page.getByTestId('field-recipient_name').fill('Dad');
+  await page.getByTestId('modal-submit').click();
+  await page.getByTestId('tab-people').click();
+  await page.getByTestId('invite').click();
+  await page.getByTestId('modal-submit').click();
+  await page.getByTestId('open-invite-here').click();
+  await expect(page.getByTestId('invite-someone-else')).toContainText('already in this care circle');
+  await page.getByTestId('invite-switch').click();
+  await expect(page.getByTestId('invite-banner')).toBeVisible();
+  await signup('Helper Hana', `hana.${stamp}@example.test`);
+  await expect(page.locator('main h1')).toContainText('Today for Dad');
+  await page.getByTestId('tab-people').click();
+  await expect(page.locator('main')).toContainText('Helper Hana');
+});
