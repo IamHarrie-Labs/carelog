@@ -200,3 +200,20 @@ test('settings: rename yourself and change your password', async ({ page }) => {
   await page.getByTestId('settings-save-password').click();
   await expect(page.getByTestId('settings-password-status')).toContainText('Password changed');
 });
+
+test('the logo and the site address lead to the landing page when signed in', async ({ page }) => {
+  await page.goto('/signup');
+  await page.getByTestId('auth-name').fill('Logo Test');
+  await page.getByTestId('auth-email').fill(`logo.${Date.now()}@example.test`);
+  await page.getByTestId('auth-password').fill('synthetic-test-password');
+  await page.getByTestId('auth-submit').click();
+  await expect(page).toHaveURL(/\/circles$/);
+  await page.getByTestId('brand').first().click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Care changes hands.');
+  await page.reload();
+  await expect(page.getByTestId('landing-dashboard')).toBeVisible();
+  await page.getByTestId('landing-dashboard').click();
+  await expect(page).toHaveURL(/\/circles$/);
+  await expect(page.getByTestId('new-circle')).toBeVisible();
+});
