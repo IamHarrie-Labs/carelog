@@ -2,7 +2,7 @@
 
 A 1 minute 42 second motion-design film for CareLog: 1080p, 60 fps, with a female voiceover, kinetic typography, a synthesised score and sound design.
 
-**Watch:** [`carelog-film.mp4`](carelog-film.mp4)
+**Watch:** the rendered `carelog-film.mp4` (237 MB, too large for git; rebuild with the steps below).
 
 ## The story
 
