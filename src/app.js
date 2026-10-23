@@ -74,7 +74,7 @@ export function createApp(db, { secureCookies = false, serveStaticFiles = true }
     const circlesAll = await db.prepare(
       `SELECT ci.id, ci.name, ci.recipient_name, ci.kind, ci.timezone, m.role, m.expires_at
        FROM members m JOIN circles ci ON ci.id = m.circle_id
-       WHERE m.user_id = ? AND m.status = 'active' ORDER BY ci.id DESC`
+       WHERE m.user_id = ? AND m.status = 'active' ORDER BY ci.id`
     ).all(user.id);
     const circles = circlesAll.filter((x) => !(x.expires_at && Date.parse(x.expires_at) < Date.now()));
     return c.json({ user, circles });
