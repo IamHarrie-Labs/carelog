@@ -41,6 +41,7 @@ const MESSAGES = {
   password_too_short: 'Use at least 8 characters for the password.',
   invalid_email: 'That email address does not look right.',
   name_required: 'Please enter a name.',
+  wrong_password: 'That is not your current password.',
   already_recorded: 'This was already recorded by someone else.',
   exception_needs_explanation: 'Please explain what happened (a few words is enough).',
   reason_required: 'Please say why you are correcting this.',

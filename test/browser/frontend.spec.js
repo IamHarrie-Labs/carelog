@@ -178,3 +178,25 @@ test('an invite can be handed to someone on the same device', async ({ page }) =
   await page.getByTestId('tab-people').click();
   await expect(page.locator('main')).toContainText('Helper Hana');
 });
+
+test('settings: rename yourself and change your password', async ({ page }) => {
+  const stamp = Date.now();
+  await page.goto('/signup');
+  await page.getByTestId('auth-name').fill('Tola Test');
+  await page.getByTestId('auth-email').fill(`tola.${stamp}@example.test`);
+  await page.getByTestId('auth-password').fill('synthetic-test-password');
+  await page.getByTestId('auth-submit').click();
+  await page.getByTestId('nav-settings').click();
+  await expect(page).toHaveURL(/\/settings$/);
+  await expect(page.getByTestId('settings-email')).toHaveText(`tola.${stamp}@example.test`);
+  await page.getByTestId('settings-name').fill('Tola Adeyemi');
+  await page.getByTestId('settings-save-name').click();
+  await expect(page.getByTestId('whoami')).toHaveText('Tola Adeyemi');
+  await page.getByTestId('settings-current-password').fill('wrong-password');
+  await page.getByTestId('settings-new-password').fill('another-test-password');
+  await page.getByTestId('settings-save-password').click();
+  await expect(page.getByTestId('settings-password-status')).toContainText('not your current password');
+  await page.getByTestId('settings-current-password').fill('synthetic-test-password');
+  await page.getByTestId('settings-save-password').click();
+  await expect(page.getByTestId('settings-password-status')).toContainText('Password changed');
+});
