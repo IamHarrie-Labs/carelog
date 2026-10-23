@@ -8,7 +8,7 @@ export const brand = (href = '/') => h('a', { class: 'cl-brand', href, testid: '
   h('img', { src: '/assets/carelog-logo.svg', width: 35, height: 35, alt: '' }), h('span', { class: 'cl-wordmark' }, 'CareLog'));
 
 
-export function landingView(root) {
+export function landingView(root, me) {
   cleanupLandingMotion();
-  disposeMotion = renderReferencePage(root, brand);
+  disposeMotion = renderReferencePage(root, brand, me);
 }

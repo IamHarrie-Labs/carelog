@@ -67,9 +67,9 @@ function shell(content, tab) {
   const alone = S.circle && can('members') && (S.members || []).filter((m) => m.status === 'active').length <= 1;
   return [h('div', { class: 'cl-app-layout' },
     h('aside', { class: 'cl-sidebar' }, brand(),
-      S.circle ? h('a', { class: 'cl-recipient', href: '/', title: 'Switch care circle' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.circle.recipient_name.slice(0, 1)), h('span', {}, h('strong', {}, S.circle.recipient_name), h('small', {}, S.circle.name)), icon('chevron', 16)) : null,
+      S.circle ? h('a', { class: 'cl-recipient', href: '/circles', title: 'Switch care circle' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.circle.recipient_name.slice(0, 1)), h('span', {}, h('strong', {}, S.circle.recipient_name), h('small', {}, S.circle.name)), icon('chevron', 16)) : null,
       h('nav', { class: 'cl-side-nav', 'aria-label': 'Care circle sections' },
-        links.length ? [...links, extra.length ? h('hr', { class: 'cl-side-rule' }) : null, ...extra] : h('a', { href: '/', 'aria-current': tab === 'settings' ? null : 'page' }, icon('home'), 'Your care circles')),
+        links.length ? [...links, extra.length ? h('hr', { class: 'cl-side-rule' }) : null, ...extra] : h('a', { href: '/circles', 'aria-current': tab === 'settings' ? null : 'page' }, icon('home'), 'Your care circles')),
       alone ? h('div', { class: 'cl-side-card' }, h('strong', {}, 'Bring the family in'), h('p', {}, 'CareLog works best when everyone who helps records here.'), h('a', { class: 'btn small', href: circleLink(S.circle.id, 'people') }, icon('invite', 16), 'Invite someone')) : null,
       S.me ? h('a', { class: 'cl-side-settings', href: '/settings', 'aria-current': tab === 'settings' ? 'page' : null, testid: 'nav-settings' }, icon('settings'), 'Settings') : null,
       h('div', { class: 'cl-sidebar-bottom' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.me?.name.slice(0, 1) || 'C'), h('span', {}, h('strong', { testid: 'whoami' }, S.me?.name || 'CareLog'), h('small', {}, S.role ? cap(S.role) : 'Your account')), S.me ? h('button', { class: 'cl-signout', testid: 'logout', onclick: logout }, 'Sign out') : null)),
@@ -543,7 +543,7 @@ function inviteForSomeoneElse(tok) {
         S.me = null; S.circle = null; sessionStorage.setItem('cl_invite', tok);
         nav(`/invite/${tok}`);
       } }, 'Sign out so they can join'),
-      h('a', { class: 'btn', href: '/' }, 'Back to my circles'))));
+      h('a', { class: 'btn', href: '/circles' }, 'Back to my circles'))));
 }
 
 // ---------- router ----------
@@ -562,12 +562,14 @@ export async function route() {
     // still checks the session and membership on every request.
     if (!S.me || Date.now() - (S._meAt || 0) > 30000) { await loadMe(); S._meAt = Date.now(); }
     const inv = hash.match(/^\/invite\/(.+)$/);
+    // The logo and the site address always lead to the landing page, signed in or not.
+    if (!inv && ['/', '/how-it-works', '/for-families', '/questions'].includes(hash)) { landingView(root, S.me); return; }
     if (!S.me) {
       if (inv) sessionStorage.setItem('cl_invite', inv[1]);
-      if (inv || !['/', '/how-it-works', '/for-families', '/questions'].includes(hash)) authView(inv?.[1], hash === '/signup' ? 'signup' : undefined);
-      else landingView(root);
+      authView(inv?.[1], hash === '/signup' ? 'signup' : undefined);
       return;
     }
+    if (hash === '/login' || hash === '/signup') history.replaceState({}, '', '/circles');
     const pending = inv?.[1] || sessionStorage.getItem('cl_invite');
     if (pending) {
       sessionStorage.removeItem('cl_invite');
@@ -577,7 +579,7 @@ export async function route() {
         busy = false; nav(circleLink(r.circle_id, 'today')); return;
       } catch (e) {
         if (inv && e.message === 'already_member') { inviteForSomeoneElse(inv[1]); return; }
-        toast(friendly(e)); if (inv) { busy = false; nav('/'); return; }
+        toast(friendly(e)); if (inv) { busy = false; nav('/circles'); return; }
       }
     }
     if (hash === '/settings') { S.circle = null; await settingsView(); return; }
@@ -591,7 +593,7 @@ export async function route() {
     if (!can('read') && tab === 'today') { render(h('div', { class: 'alert info', testid: 'limited' }, h('p', {}, `You can log a visit and see the emergency card for ${S.circle.recipient_name}.`), h('a', { class: 'btn', href: circleLink(S.circle.id, 'emergency') }, 'Open emergency card')), 'today'); return; }
     await views[tab]();
   } catch (e) {
-    if (e instanceof ApiError && e.status === 404 && /circle/.test(e.message)) { S.circle = null; toast('That care circle is not available to you.'); busy = false; nav('#/'); return; }
+    if (e instanceof ApiError && e.status === 404 && /circle/.test(e.message)) { S.circle = null; toast('That care circle is not available to you.'); busy = false; nav('/circles'); return; }
     fatal(e);
   } finally { busy = false; if (routePending) { routePending = false; queueMicrotask(route); } }
 }
