@@ -304,6 +304,8 @@ async function handoffView() {
         latest.acknowledgements.length
           ? h('div', { class: 'alert ok', testid: 'ack-list' }, latest.acknowledgements.map((a) => h('div', {}, `Acknowledged by ${a.name} at ${fmtDateTime(a.acked_at, tz())}`)))
           : h('div', { class: 'alert info', testid: 'not-acked' }, 'Waiting for review.'),
+        !canAck && !mine && latest.from.id === S.me.id ? h('p', { class: 'small muted', testid: 'ack-who' }, 'You prepared this handoff. The next caregiver acknowledges it.') : null,
+        !canAck && !mine && latest.from.id !== S.me.id && !addressedToMe ? h('p', { class: 'small muted', testid: 'ack-who' }, `Only ${latest.to.name} can acknowledge this handoff.`) : null,
         canAck ? h('button', { class: 'primary', testid: 'ack-handoff', onclick: async () => {
           try { await api(`/api/circles/${cid}/handoffs/${latest.id}/ack`, { method: 'POST' }); toast('Acknowledged.'); route(); } catch (e) { toast(friendly(e)); }
         } }, 'I have reviewed this handoff') : null,

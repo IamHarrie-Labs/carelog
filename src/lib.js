@@ -15,6 +15,10 @@ export const can = (role, cap) => !!CAPS[role]?.includes(cap);
 
 export const now = () => new Date().toISOString();
 export const token = (n = 24) => crypto.randomBytes(n).toString('base64url');
+// Tokens people copy, read aloud or retype (invite and emergency links): lowercase, with no
+// look-alike characters (0/o, 1/l/i). 26 characters from 31 gives about 128 bits.
+const READABLE = '23456789abcdefghjkmnpqrstuvwxyz';
+export const readableToken = (len = 26) => Array.from({ length: len }, () => READABLE[crypto.randomInt(READABLE.length)]).join('');
 
 export function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
   const hash = crypto.scryptSync(password, salt, 64).toString('hex');
