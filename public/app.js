@@ -25,40 +25,53 @@ function fatal(e) {
   root.replaceChildren(h('div', { class: 'wrap' }, h('div', { class: 'alert bad', role: 'alert' }, friendly(e))));
 }
 
-const sectionInfo = {
-  today: ['Today', 'The everyday details, recorded together.'],
-  handoff: ['Handoff', 'What happened, what needs checking, and what carries forward.'],
-  items: ['Open items', 'Unfinished work stays visible until someone records an outcome.'],
-  timeline: ['Timeline', 'See who recorded each update and what changed.'],
-  people: ['People', 'The people you trust with the care.'],
-  emergency: ['Emergency', 'Essential information, shared on your terms.'],
-  money: ['Money', 'Shared expenses, clearly recorded.'],
-  load: ['Care load', 'See who has been helping and how you’re doing.'],
-  appointments: ['Appointments', 'The next visit, and who is taking care of it.'],
-  supplies: ['Supplies', 'Keep the everyday essentials in view.'],
-  documents: ['Documents', 'Important information, in one place.'],
-  digest: ['Digest', 'Look back at this week’s care.'],
+// Line icons for the sidebar (24px grid, 1.6 stroke). Static markup only, never user text.
+const ICONS = {
+  today: '<rect x="3.5" y="4.5" width="17" height="16" rx="2.5"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4M8.5 14.5l2.2 2.2 4.8-4.7"/>',
+  handoff: '<path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/>',
+  items: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 12.2l2.3 2.3 4.7-4.8"/>',
+  timeline: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  people: '<circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19.5c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5M15.5 5.6a3 3 0 0 1 0 5.8M17.5 14.7c1.6.6 2.7 2.2 3 4.8"/>',
+  emergency: '<path d="M12 3.5l7.5 3v5.3c0 4.4-3.1 7.7-7.5 8.7-4.4-1-7.5-4.3-7.5-8.7V6.5z"/><path d="M12 8.5v6M9 11.5h6"/>',
+  money: '<rect x="3.5" y="6" width="17" height="12.5" rx="2.5"/><path d="M3.5 10h17M15.5 14.5h2"/>',
+  load: '<path d="M3.5 12h3.5l2.5-6 4.5 12 2.5-6h4"/>',
+  appointments: '<rect x="3.5" y="4.5" width="17" height="16" rx="2.5"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4M8 13.5h3M8 16.5h6"/>',
+  supplies: '<path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4M12 12v8"/>',
+  documents: '<path d="M7 3.5h7l4.5 4.5v12.5H7z"/><path d="M14 3.5V8h4.5M9.5 12.5h6M9.5 16h6"/>',
+  digest: '<path d="M5 4.5h10.5L19 8v11.5H5z"/><path d="M8.5 9.5h7M8.5 13h7M8.5 16.5h4"/>',
+  home: '<path d="M4 10.5L12 4l8 6.5V20h-5v-5.5H9V20H4z"/>',
+  invite: '<circle cx="10" cy="8.5" r="3.2"/><path d="M4 19.5c.6-3.2 2.9-5 6-5 1.4 0 2.6.4 3.6 1M18 13.5v6M15 16.5h6"/>',
+  chevron: '<path d="M9 6l6 6-6 6"/>',
 };
+function icon(name, size = 18) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('width', size); svg.setAttribute('height', size);
+  svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '1.6');
+  svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round'); svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('class', 'cl-icon'); svg.innerHTML = ICONS[name] || '';
+  return svg;
+}
 function shell(content, tab) {
-  const title = sectionInfo[tab]?.[0] || 'Your care circles';
   const links = [];
+  const extra = [];
   if (S.circle) {
-    const add = (t, label, ok = true) => ok && links.push(h('a', { href: circleLink(S.circle.id, t), 'aria-current': tab === t ? 'page' : null, testid: `tab-${t}` }, h('span', { class: 'cl-nav-dot', 'aria-hidden': 'true' }), label));
-    add('today', 'Today', can('read')); add('handoff', 'Handoff', can('read'));
-    add('items', 'Open items', can('read')); add('timeline', 'Timeline', can('read')); add('people', 'People', can('read'));
-    links.push(h('p', { class: 'cl-sidebar-label' }, 'More care tools'));
-    add('emergency', 'Emergency', can('emergency') || can('emergency_view'));
-    add('money', 'Money', can('money')); add('load', 'Care load', can('read'));
-    add('appointments', 'Appointments', can('read')); add('supplies', 'Supplies', can('read'));
-    add('documents', 'Documents', can('read')); add('digest', 'Digest', can('read'));
+    const add = (list, t, label, ok = true) => ok && list.push(h('a', { href: circleLink(S.circle.id, t), 'aria-current': tab === t ? 'page' : null, testid: `tab-${t}` }, icon(t), label));
+    add(links, 'today', 'Today', can('read')); add(links, 'handoff', 'Handoff', can('read'));
+    add(links, 'items', 'Open items', can('read')); add(links, 'timeline', 'Timeline', can('read')); add(links, 'people', 'People', can('read'));
+    add(extra, 'appointments', 'Appointments', can('read')); add(extra, 'supplies', 'Supplies', can('read'));
+    add(extra, 'money', 'Money', can('money')); add(extra, 'load', 'Care load', can('read'));
+    add(extra, 'documents', 'Documents', can('read')); add(extra, 'digest', 'Digest', can('read'));
+    add(extra, 'emergency', 'Emergency', can('emergency') || can('emergency_view'));
   }
+  const alone = S.circle && can('members') && (S.members || []).filter((m) => m.status === 'active').length <= 1;
   return [h('div', { class: 'cl-app-layout' },
     h('aside', { class: 'cl-sidebar' }, brand(),
-      S.circle ? h('a', { class: 'cl-recipient', href: '/' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.circle.recipient_name.slice(0, 1)), h('span', {}, h('strong', {}, S.circle.recipient_name), h('small', {}, 'Switch care circle ↗'))) : null,
-      h('nav', { class: 'cl-side-nav', 'aria-label': 'Care circle sections' }, links.length ? links : h('a', { href: '/', 'aria-current': 'page' }, 'Your care circles')),
-      h('div', { class: 'cl-sidebar-bottom' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.me?.name.slice(0, 1) || 'C'), h('span', {}, h('strong', { testid: 'whoami' }, S.me?.name || 'CareLog'), h('small', {}, S.role ? cap(S.role) : 'Your workspace')), S.me ? h('button', { class: 'cl-signout', testid: 'logout', onclick: logout }, 'Sign out') : null)),
+      S.circle ? h('a', { class: 'cl-recipient', href: '/', title: 'Switch care circle' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.circle.recipient_name.slice(0, 1)), h('span', {}, h('strong', {}, S.circle.recipient_name), h('small', {}, S.circle.name)), icon('chevron', 16)) : null,
+      h('nav', { class: 'cl-side-nav', 'aria-label': 'Care circle sections' },
+        links.length ? [...links, extra.length ? h('hr', { class: 'cl-side-rule' }) : null, ...extra] : h('a', { href: '/', 'aria-current': 'page' }, icon('home'), 'Your care circles')),
+      alone ? h('div', { class: 'cl-side-card' }, h('strong', {}, 'Bring the family in'), h('p', {}, 'CareLog works best when everyone who helps records here.'), h('a', { class: 'btn small', href: circleLink(S.circle.id, 'people') }, icon('invite', 16), 'Invite someone')) : null,
+      h('div', { class: 'cl-sidebar-bottom' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.me?.name.slice(0, 1) || 'C'), h('span', {}, h('strong', { testid: 'whoami' }, S.me?.name || 'CareLog'), h('small', {}, S.role ? cap(S.role) : 'Your account')), S.me ? h('button', { class: 'cl-signout', testid: 'logout', onclick: logout }, 'Sign out') : null)),
     h('div', { class: 'cl-workspace' },
-      h('header', { class: 'cl-workspace-header' }, h('p', {}, 'CareLog', h('span', { 'aria-hidden': 'true' }, ' / '), title), S.circle && (can('emergency') || can('emergency_view')) ? h('a', { class: 'cl-emergency-link', href: circleLink(S.circle.id, 'emergency') }, 'Emergency packet ↗') : null),
       h('main', { id: 'main', class: 'wrap cl-app-main' }, content)))];
 }
 const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
