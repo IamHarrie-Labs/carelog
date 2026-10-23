@@ -17,8 +17,9 @@ const CAPS = {
 export const can = (cap) => !!CAPS[S.role]?.includes(cap);
 export { S };
 
-const nav = (path) => { location.hash = path; };
-const circleLink = (id, tab) => `#/c/${id}/${tab}`;
+// Clean paths (/circles/12/people). Old #/ links from before still work: route() rewrites them.
+const nav = (path) => { const p = path.replace(/^#/, '') || '/'; if (p !== location.pathname) history.pushState({}, '', p); route(); };
+const circleLink = (id, tab) => `/circles/${id}/${tab}`;
 
 function fatal(e) {
   root.replaceChildren(h('div', { class: 'wrap' }, h('div', { class: 'alert bad', role: 'alert' }, friendly(e))));
@@ -53,8 +54,8 @@ function shell(content, tab) {
   }
   return [h('div', { class: 'cl-app-layout' },
     h('aside', { class: 'cl-sidebar' }, brand(),
-      S.circle ? h('a', { class: 'cl-recipient', href: '#/' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.circle.recipient_name.slice(0, 1)), h('span', {}, h('strong', {}, S.circle.recipient_name), h('small', {}, 'Switch care circle ↗'))) : null,
-      h('nav', { class: 'cl-side-nav', 'aria-label': 'Care circle sections' }, links.length ? links : h('a', { href: '#/', 'aria-current': 'page' }, 'Your care circles')),
+      S.circle ? h('a', { class: 'cl-recipient', href: '/' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.circle.recipient_name.slice(0, 1)), h('span', {}, h('strong', {}, S.circle.recipient_name), h('small', {}, 'Switch care circle ↗'))) : null,
+      h('nav', { class: 'cl-side-nav', 'aria-label': 'Care circle sections' }, links.length ? links : h('a', { href: '/', 'aria-current': 'page' }, 'Your care circles')),
       h('div', { class: 'cl-sidebar-bottom' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.me?.name.slice(0, 1) || 'C'), h('span', {}, h('strong', { testid: 'whoami' }, S.me?.name || 'CareLog'), h('small', {}, S.role ? cap(S.role) : 'Your workspace')), S.me ? h('button', { class: 'cl-signout', testid: 'logout', onclick: logout }, 'Sign out') : null)),
     h('div', { class: 'cl-workspace' },
       h('header', { class: 'cl-workspace-header' }, h('p', {}, 'CareLog', h('span', { 'aria-hidden': 'true' }, ' / '), title), S.circle && (can('emergency') || can('emergency_view')) ? h('a', { class: 'cl-emergency-link', href: circleLink(S.circle.id, 'emergency') }, 'Emergency packet ↗') : null),
@@ -67,8 +68,7 @@ const render = (content, tab) => root.replaceChildren(...shell(content, tab).fil
 
 async function logout() {
   try { await api('/api/logout', { method: 'POST' }); } catch { /* already signed out */ }
-  S.me = null; S.circle = null; nav('#/');
-  route();
+  S.me = null; S.circle = null; nav('/');
 }
 
 async function loadMe() {
@@ -118,7 +118,7 @@ function authView(inviteToken, initialMode) {
   });
   draw();
   root.replaceChildren(h('div', { class: 'cl-auth' },
-    h('header', { class: 'cl-auth-nav' }, brand(), h('a', { href: '#/' }, 'Back to CareLog')),
+    h('header', { class: 'cl-auth-nav' }, brand(), h('a', { href: '/' }, 'Back to CareLog')),
     h('main', { id: 'main', class: 'cl-auth-main' },
       h('div', { class: 'cl-auth-story' }, h('p', { class: 'cl-eyebrow' }, 'Care, shared clearly.'), h('h1', {}, 'A little less guessing.', h('em', {}, 'A little more together.')), h('p', {}, 'One shared record of what happened, what needs checking, and what comes next.')),
       h('section', { class: 'cl-auth-form', 'aria-label': 'Account access' }, inviteToken ? h('div', { class: 'alert info', testid: 'invite-banner' }, 'You have been invited to a care circle. Sign in or create an account to join.') : null, form,
@@ -439,8 +439,8 @@ async function peopleView() {
       onSubmit: (v) => api(`/api/circles/${cid}/invites`, { method: 'POST', body: { role: v.role, access_hours: v.access_hours ? Number(v.access_hours) : undefined } }),
     });
     if (out?.token) {
-      const link = `${location.origin}/#/invite/${out.token}`;
-      const here = h('p', { class: 'small' }, 'Is the person with you? ', h('a', { href: `#/invite/${out.token}`, testid: 'open-invite-here', onclick: () => document.getElementById('modal').close() }, 'Open the invite on this device'));
+      const link = `${location.origin}/invite/${out.token}`;
+      const here = h('p', { class: 'small' }, 'Is the person with you? ', h('a', { href: `/invite/${out.token}`, testid: 'open-invite-here', onclick: () => document.getElementById('modal').close() }, 'Open the invite on this device'));
       await modal({ title: 'Invite link', submit: 'Done', intro: 'Send this link to the person. It works once.', extra: here, fields: [{ name: 'link', label: 'Link', value: link }] });
     }
   } }, 'Invite someone');
@@ -480,9 +480,9 @@ function inviteForSomeoneElse(tok) {
       h('button', { class: 'primary', testid: 'invite-switch', onclick: async () => {
         try { await api('/api/logout', { method: 'POST' }); } catch { /* already signed out */ }
         S.me = null; S.circle = null; sessionStorage.setItem('cl_invite', tok);
-        nav(`#/invite/${tok}`); route();
+        nav(`/invite/${tok}`);
       } }, 'Sign out so they can join'),
-      h('a', { class: 'btn', href: '#/' }, 'Back to my circles'))));
+      h('a', { class: 'btn', href: '/' }, 'Back to my circles'))));
 }
 
 // ---------- router ----------
@@ -493,8 +493,9 @@ export async function route() {
   try {
     cleanupLandingMotion();
     document.body.classList.remove('marketing');
-    const hash = location.hash.replace(/^#/, '') || '/';
+    if (location.hash.startsWith('#/')) history.replaceState({}, '', location.hash.slice(1).replace(/^\/c\//, '/circles/'));
     const path = location.pathname;
+    const hash = path;
     if (path.startsWith('/e/')) { await publicEmergency(path.slice(3)); return; }
     await loadMe();
     const inv = hash.match(/^\/invite\/(.+)$/);
@@ -513,10 +514,10 @@ export async function route() {
         busy = false; nav(circleLink(r.circle_id, 'today')); return;
       } catch (e) {
         if (inv && e.message === 'already_member') { inviteForSomeoneElse(inv[1]); return; }
-        toast(friendly(e)); if (inv) { busy = false; nav('#/'); return; }
+        toast(friendly(e)); if (inv) { busy = false; nav('/'); return; }
       }
     }
-    const m = hash.match(/^\/c\/(\d+)\/(\w+)$/);
+    const m = hash.match(/^\/circles\/(\d+)\/(\w+)$/);
     if (!m) { S.circle = null; await homeView(); return; }
     await enterCircle(Number(m[1]));
     const tab = m[2];
@@ -535,7 +536,15 @@ document.querySelector('.skip').addEventListener('click', (event) => {
   const main = document.getElementById('main');
   if (main) { main.tabIndex = -1; main.focus(); main.scrollIntoView(); }
 });
-window.addEventListener('hashchange', route);
+window.addEventListener('popstate', route);
+// Same-origin links navigate inside the app instead of reloading the page.
+document.addEventListener('click', (ev) => {
+  const a = ev.target.closest?.('a[href]');
+  if (!a || ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey || a.target) return;
+  const url = new URL(a.href, location.href);
+  if (url.origin !== location.origin || url.pathname.startsWith('/api/') || url.pathname.startsWith('/e/') || /\.[a-z0-9]+$/i.test(url.pathname)) return;
+  ev.preventDefault(); nav(url.pathname);
+});
 route();
 
 if ('serviceWorker' in navigator) {
