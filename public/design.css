@@ -291,3 +291,16 @@ dialog .field .small, dialog .help { font-size:12.5px; }
 .cl-sidebar .cl-brand { margin-bottom:18px; }
 /* Empty states read as a calm centred message, not a stray line. */
 .cl-app-main .card > p.muted:only-child, .cl-app-main .card > p.muted:only-of-type:last-child { text-align:center; padding:26px 0; margin:0; }
+/* Settings */
+.cl-side-settings { display:flex; align-items:center; gap:12px; margin-top:12px; padding:7px 12px; min-height:36px; border-radius:9px; color:#2f4a40; font-size:14px; font-weight:500; text-decoration:none; }
+.cl-side-settings .cl-icon { color:#5d7067; }
+.cl-side-settings:hover { background:#ecede0; }
+.cl-side-settings[aria-current=page] { background:#e3ead3; color:#193c34; }
+.cl-settings h1 { margin-bottom:22px; }
+.cl-settings .card { margin-bottom:16px; }
+.cl-settings .field { margin-top:14px; max-width:440px; }
+.cl-settings .field label { display:block; font-size:13px; font-weight:500; color:#3d5a50; margin-bottom:6px; }
+.cl-settings .row { margin-top:18px; }
+.cl-readonly { margin:0; padding:10px 0; font-size:15px; color:#193c34; }
+.ok-text { color:#2f6a3f; margin-top:12px; } .bad-text { color:#a33a2b; margin-top:12px; }
+@media(max-width:760px) { .cl-side-settings { display:inline-flex; margin:0 0 8px; min-height:30px; font-size:12px; padding:4px 8px; } }

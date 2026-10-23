@@ -42,6 +42,7 @@ const ICONS = {
   home: '<path d="M4 10.5L12 4l8 6.5V20h-5v-5.5H9V20H4z"/>',
   invite: '<circle cx="10" cy="8.5" r="3.2"/><path d="M4 19.5c.6-3.2 2.9-5 6-5 1.4 0 2.6.4 3.6 1M18 13.5v6M15 16.5h6"/>',
   chevron: '<path d="M9 6l6 6-6 6"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
 };
 function icon(name, size = 18) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -68,8 +69,9 @@ function shell(content, tab) {
     h('aside', { class: 'cl-sidebar' }, brand(),
       S.circle ? h('a', { class: 'cl-recipient', href: '/', title: 'Switch care circle' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.circle.recipient_name.slice(0, 1)), h('span', {}, h('strong', {}, S.circle.recipient_name), h('small', {}, S.circle.name)), icon('chevron', 16)) : null,
       h('nav', { class: 'cl-side-nav', 'aria-label': 'Care circle sections' },
-        links.length ? [...links, extra.length ? h('hr', { class: 'cl-side-rule' }) : null, ...extra] : h('a', { href: '/', 'aria-current': 'page' }, icon('home'), 'Your care circles')),
+        links.length ? [...links, extra.length ? h('hr', { class: 'cl-side-rule' }) : null, ...extra] : h('a', { href: '/', 'aria-current': tab === 'settings' ? null : 'page' }, icon('home'), 'Your care circles')),
       alone ? h('div', { class: 'cl-side-card' }, h('strong', {}, 'Bring the family in'), h('p', {}, 'CareLog works best when everyone who helps records here.'), h('a', { class: 'btn small', href: circleLink(S.circle.id, 'people') }, icon('invite', 16), 'Invite someone')) : null,
+      S.me ? h('a', { class: 'cl-side-settings', href: '/settings', 'aria-current': tab === 'settings' ? 'page' : null, testid: 'nav-settings' }, icon('settings'), 'Settings') : null,
       h('div', { class: 'cl-sidebar-bottom' }, h('span', { class: 'cl-avatar', 'aria-hidden': 'true' }, S.me?.name.slice(0, 1) || 'C'), h('span', {}, h('strong', { testid: 'whoami' }, S.me?.name || 'CareLog'), h('small', {}, S.role ? cap(S.role) : 'Your account')), S.me ? h('button', { class: 'cl-signout', testid: 'logout', onclick: logout }, 'Sign out') : null)),
     h('div', { class: 'cl-workspace' },
       h('main', { id: 'main', class: 'wrap cl-app-main' }, content)))];
@@ -87,7 +89,7 @@ async function logout() {
 async function loadMe() {
   try {
     const r = await api('/api/me');
-    S.me = r.user; S.circles = r.circles;
+    S.me = r.user; S.circles = r.circles; S._meAt = Date.now();
   } catch (e) {
     if (e.status !== 401) throw e;
     S.me = null; S.circles = [];
@@ -175,6 +177,50 @@ async function homeView() {
   render(h('div', {},
     h('div', { class: 'row between' }, h('h1', {}, 'Your care circles'), newBtn),
     S.circles.length ? list : h('div', { class: 'card' }, list)));
+}
+
+// ---------- account settings ----------
+async function settingsView() {
+  const others = await api('/api/me/sessions').catch(() => ({ other_sessions: 0 }));
+  const field = (label, input, help) => h('div', { class: 'field' }, h('label', { for: input.id }, label), input, help ? h('div', { class: 'small muted' }, help) : null);
+  const status = (testid) => h('p', { class: 'small', role: 'status', testid, hidden: true });
+  const say = (el, text, ok = true) => { el.textContent = text; el.className = `small ${ok ? 'ok-text' : 'bad-text'}`; el.hidden = false; };
+
+  const nameIn = h('input', { id: 's_name', name: 'name', value: S.me.name, required: true, maxlength: 80, autocomplete: 'name', testid: 'settings-name' });
+  const nameMsg = status('settings-name-status');
+  const profile = h('form', { class: 'card', testid: 'settings-profile', onsubmit: async (e) => {
+    e.preventDefault();
+    try { const r = await api('/api/me', { method: 'PATCH', body: { name: nameIn.value } }); S.me = r.user; say(nameMsg, 'Name saved. Your new name appears on everything you record from now on.'); render(page(), 'settings'); }
+    catch (err) { say(nameMsg, friendly(err), false); }
+  } }, h('h2', {}, 'Profile'),
+    field('Your name', nameIn, 'Shown next to everything you record and every handoff you prepare.'),
+    h('div', { class: 'field' }, h('label', {}, 'Email'), h('p', { class: 'cl-readonly', testid: 'settings-email' }, S.me.email)),
+    h('div', { class: 'row' }, h('button', { class: 'primary', type: 'submit', testid: 'settings-save-name' }, 'Save name')), nameMsg);
+
+  const cur = h('input', { id: 's_cur', type: 'password', required: true, autocomplete: 'current-password', testid: 'settings-current-password' });
+  const next = h('input', { id: 's_next', type: 'password', required: true, minlength: 8, autocomplete: 'new-password', testid: 'settings-new-password' });
+  const pwMsg = status('settings-password-status');
+  const password = h('form', { class: 'card', testid: 'settings-password', onsubmit: async (e) => {
+    e.preventDefault();
+    try {
+      const r = await api('/api/me/password', { method: 'POST', body: { current: cur.value, next: next.value } });
+      cur.value = ''; next.value = '';
+      say(pwMsg, r.other_sessions_ended ? `Password changed. ${r.other_sessions_ended} other device(s) were signed out.` : 'Password changed.');
+    } catch (err) { say(pwMsg, friendly(err), false); }
+  } }, h('h2', {}, 'Password'),
+    field('Current password', cur), field('New password', next, 'At least 8 characters. Changing it signs you out on your other devices.'),
+    h('div', { class: 'row' }, h('button', { class: 'primary', type: 'submit', testid: 'settings-save-password' }, 'Change password')), pwMsg);
+
+  const devMsg = status('settings-devices-status');
+  const devices = h('div', { class: 'card', testid: 'settings-devices' }, h('h2', {}, 'Devices'),
+    h('p', {}, others.other_sessions ? `You are also signed in on ${others.other_sessions} other device(s).` : 'You are only signed in on this device.'),
+    h('p', { class: 'small muted' }, 'Lost a phone, or used a shared computer? Sign out everywhere except here.'),
+    h('div', { class: 'row' }, h('button', { testid: 'settings-sign-out-others', disabled: !others.other_sessions, onclick: async () => {
+      try { const r = await api('/api/me/sign-out-others', { method: 'POST' }); say(devMsg, `Signed out of ${r.ended} other device(s).`); } catch (err) { say(devMsg, friendly(err), false); }
+    } }, 'Sign out of other devices')), devMsg);
+
+  const page = () => h('div', { class: 'cl-settings' }, h('h1', {}, 'Settings'), profile, password, devices);
+  render(page(), 'settings');
 }
 
 // ---------- circle loader ----------
@@ -298,8 +344,10 @@ async function todayView() {
 async function handoffView() {
   const cid = S.circle.id;
   const list = await api(`/api/circles/${cid}/handoffs`);
-  const latest = list[0] ? await api(`/api/circles/${cid}/handoffs/${list[0].id}`) : null;
-  const narrative = latest ? await api(`/api/circles/${cid}/handoffs/${latest.id}/narrative`).catch(() => null) : null;
+  const [latest, narrative] = list[0] ? await Promise.all([
+    api(`/api/circles/${cid}/handoffs/${list[0].id}`),
+    api(`/api/circles/${cid}/handoffs/${list[0].id}/narrative`).catch(() => null),
+  ]) : [null, null];
 
   const prepare = h('button', { class: 'primary', testid: 'prepare-handoff', onclick: async () => {
     const others = S.members.filter((m) => m.id !== S.me.id && m.status === 'active' && ['owner', 'caregiver', 'paid'].includes(m.role));
@@ -510,7 +558,9 @@ export async function route() {
     const path = location.pathname;
     const hash = path;
     if (path.startsWith('/e/')) { await publicEmergency(path.slice(3)); return; }
-    await loadMe();
+    // Who you are is re-read at most every 30 seconds while moving around the app; the server
+    // still checks the session and membership on every request.
+    if (!S.me || Date.now() - (S._meAt || 0) > 30000) { await loadMe(); S._meAt = Date.now(); }
     const inv = hash.match(/^\/invite\/(.+)$/);
     if (!S.me) {
       if (inv) sessionStorage.setItem('cl_invite', inv[1]);
@@ -530,6 +580,7 @@ export async function route() {
         toast(friendly(e)); if (inv) { busy = false; nav('/'); return; }
       }
     }
+    if (hash === '/settings') { S.circle = null; await settingsView(); return; }
     const m = hash.match(/^\/circles\/(\d+)\/(\w+)$/);
     if (!m) { S.circle = null; await homeView(); return; }
     await enterCircle(Number(m[1]));

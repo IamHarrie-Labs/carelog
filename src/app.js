@@ -87,7 +87,43 @@ export function createApp(db, { secureCookies = false, serveStaticFiles = true }
       need(/^[a-z]{2}(-[A-Z]{2})?$/.test(b.lang), 'invalid_lang');
       await db.prepare('UPDATE users SET lang = ? WHERE id = ?').run(b.lang, user.id);
     }
-    return c.json({ ok: true });
+    if (b.name !== undefined) {
+      const name = clean(b.name, 80);
+      need(name.length > 0, 'name_required');
+      await db.prepare('UPDATE users SET name = ? WHERE id = ?').run(name, user.id);
+    }
+    const fresh = await db.prepare('SELECT id, email, name, lang FROM users WHERE id = ?').get(user.id);
+    return c.json({ ok: true, user: fresh });
+  });
+
+  const sessionToken = (c) => {
+    const auth = c.req.header('authorization');
+    return auth?.startsWith('Bearer ') ? auth.slice(7) : getCookie(c, 'cl_session');
+  };
+
+  // Changing the password ends every other session, so a lost phone or an old login stops working.
+  app.post('/api/me/password', async (c) => {
+    const user = await currentUser(db, c);
+    const b = await body(c);
+    const row = await db.prepare('SELECT pass_hash, salt FROM users WHERE id = ?').get(user.id);
+    if (typeof b.current !== 'string' || !verifyPassword(b.current, row.salt, row.pass_hash)) throw new HttpError(400, 'wrong_password');
+    need(typeof b.next === 'string' && b.next.length >= 8, 'password_too_short');
+    const { hash, salt } = hashPassword(b.next);
+    await db.prepare('UPDATE users SET pass_hash = ?, salt = ? WHERE id = ?').run(hash, salt, user.id);
+    const r = await db.prepare('DELETE FROM sessions WHERE user_id = ? AND token != ?').run(user.id, sessionToken(c));
+    return c.json({ ok: true, other_sessions_ended: r.changes });
+  });
+
+  app.get('/api/me/sessions', async (c) => {
+    const user = await currentUser(db, c);
+    const r = await db.prepare('SELECT COUNT(*) AS n FROM sessions WHERE user_id = ? AND token != ?').get(user.id, sessionToken(c));
+    return c.json({ other_sessions: r.n });
+  });
+
+  app.post('/api/me/sign-out-others', async (c) => {
+    const user = await currentUser(db, c);
+    const r = await db.prepare('DELETE FROM sessions WHERE user_id = ? AND token != ?').run(user.id, sessionToken(c));
+    return c.json({ ok: true, ended: r.changes });
   });
 
   // ---------- circles ----------

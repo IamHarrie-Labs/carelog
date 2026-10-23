@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { HttpError, now, clean, localParts } from './lib.js';
-import { circleCtx, serializeRecord, visibleRecords, dayView, activeMembers } from './core.js';
+import { circleCtx, serializeRecords, visibleRecords, dayView, activeMembers } from './core.js';
 import { draftNarrative } from './narrative.js';
 
 // Everything a handoff shows is computed from stored records. Each record is pinned at the
@@ -32,10 +32,13 @@ async function loadHandoff(db, circle, role, id, viewerId) {
   const myAck = acks.find((a) => a.user_id === viewerId);
 
   const entries = [];
+  const refIds = snap.records.map((ref) => ref.id);
+  const rows = refIds.length ? await db.prepare(`SELECT * FROM records WHERE id IN (${refIds.map(() => '?').join(',')})`).all(...refIds) : [];
+  const visible = rows.filter((row) => !(row.is_private && role !== 'owner' && role !== 'caregiver'));
+  const serialized = new Map((await serializeRecords(db, visible)).map((rec) => [rec.id, rec]));
   for (const ref of snap.records) {
-    const row = await db.prepare('SELECT * FROM records WHERE id = ?').get(ref.id);
-    if (!row || (row.is_private && role !== 'owner' && role !== 'caregiver')) continue;
-    const rec = await serializeRecord(db, row);
+    const rec = serialized.get(ref.id);
+    if (!rec) continue;
     // Flag anything corrected after this handoff was prepared (and, for the viewer, after they reviewed it).
     const correctedSince = rec.corrections.length > ref.version;
     const afterReview = myAck ? rec.corrections.some((c) => c.entered_at > myAck.acked_at) : false;
