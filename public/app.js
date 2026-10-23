@@ -1,4 +1,4 @@
-import { h, api, ApiError, friendly, toast, modal, fmtTime, fmtDateTime } from './ui.js';
+import { h, api, ApiError, friendly, toast, modal, fmtTime, fmtDateTime, localInputToIso } from './ui.js';
 import { moreViews } from './more.js';
 import { brand, landingView, cleanupLandingMotion } from './landing.js';
 
@@ -86,7 +86,8 @@ function authView(inviteToken, initialMode) {
   const err = h('div', { class: 'alert bad', role: 'alert', hidden: true, testid: 'auth-error', tabindex: '-1' });
   const form = h('form', { testid: 'auth-form' });
   const draw = () => {
-    form.replaceChildren(
+    // replaceChildren, unlike h(), writes null as the text "null", so drop the absent sign-up-only parts.
+    form.replaceChildren(...[
       h('h2', { testid: 'auth-heading' }, mode === 'signup' ? 'Create your account' : 'Sign in to CareLog'),
       mode === 'signup' ? h('div', { class: 'field' }, h('label', { for: 'a_name' }, 'Your name'), h('input', { id: 'a_name', name: 'name', required: true, autocomplete: 'name', testid: 'auth-name' })) : null,
       h('div', { class: 'field' }, h('label', { for: 'a_email' }, 'Email'), h('input', { id: 'a_email', name: 'email', type: 'email', required: true, autocomplete: 'email', testid: 'auth-email' })),
@@ -97,7 +98,7 @@ function authView(inviteToken, initialMode) {
       h('p', { class: 'small', style: 'text-align:center;margin:14px 0 0' },
         mode === 'signup'
           ? ['Already have an account? ', h('a', { href: '#', testid: 'mode-login', onclick: (e) => { e.preventDefault(); mode = 'login'; err.hidden = true; draw(); } }, 'Go to sign in')]
-          : ['New to CareLog? ', h('a', { href: '#', testid: 'mode-signup', onclick: (e) => { e.preventDefault(); mode = 'signup'; err.hidden = true; draw(); } }, 'Create an account')]));
+          : ['New to CareLog? ', h('a', { href: '#', testid: 'mode-signup', onclick: (e) => { e.preventDefault(); mode = 'signup'; err.hidden = true; draw(); } }, 'Create an account')])].filter(Boolean));
   };
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
@@ -163,6 +164,9 @@ export { memberName, tz };
 async function todayView() {
   const cid = S.circle.id;
   const data = await api(`/api/circles/${cid}/today`);
+  // Notes entered today, so a note saved here stays in view. Administrations already show on the schedule.
+  const since = encodeURIComponent(localInputToIso(`${data.date}T00:00`, tz()));
+  const notes = can('read') ? (await api(`/api/circles/${cid}/records?since=${since}&limit=50`)).filter((r) => r.kind !== 'administration') : [];
   const canWrite = can('write_record');
   const status = (row) => {
     if (row.status === 'recorded') return h('span', { class: 'badge ok', testid: `status-${row.item.id}` }, `${row.record.outcome ?? 'recorded'} by ${row.record.author_name} at ${fmtTime(row.record.reported_at, tz())}`);
@@ -255,7 +259,12 @@ async function todayView() {
         });
         if (r) route();
       } }, 'Add scheduled item') : null),
-    canWrite || can('write_visit') ? noteBtn : null), 'today');
+    h('div', { class: 'card', testid: 'today-notes' }, h('h2', {}, 'Notes today'),
+      notes.length ? h('ul', { class: 'plain small' }, notes.map((r) => h('li', { testid: `today-note-${r.id}` },
+        h('span', { class: 'time' }, fmtTime(r.reported_at, tz())), ' ', h('strong', {}, r.author_name), ' ', h('span', { class: 'badge' }, r.kind),
+        r.is_private ? h('span', { class: 'badge' }, 'private') : null, ' ', r.text)))
+        : h('p', { class: 'muted' }, 'No notes yet today.'),
+      canWrite || can('write_visit') ? noteBtn : null)), 'today');
 }
 
 // ---------- Handoff ----------

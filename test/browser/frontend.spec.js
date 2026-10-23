@@ -13,6 +13,7 @@ test('landing, account, persistent care record and every workspace section work 
   await expect(page.locator('main')).toBeFocused();
   await expect(page).toHaveURL(/\/$/);
   await page.getByTestId('landing-login').click();
+  await expect(page.getByTestId('auth-form')).not.toContainText('null');
   await page.getByTestId('auth-email').fill('missing@example.test');
   await page.getByTestId('auth-password').fill('unmatched-test-password');
   await page.getByTestId('auth-submit').click();
@@ -32,6 +33,10 @@ test('landing, account, persistent care record and every workspace section work 
   await expect(page.locator('[data-testid^="status-"]').first()).toContainText('Robin Test');
   await page.reload();
   await expect(page.locator('[data-testid^="status-"]').first()).toContainText('Robin Test');
+  await page.getByTestId('add-note').click();
+  await page.getByTestId('field-text').fill('Ate a full lunch');
+  await page.getByTestId('modal-submit').click();
+  await expect(page.getByTestId('today-notes')).toContainText('Ate a full lunch');
   for (const section of ['today','handoff','items','timeline','people','emergency','money','load','appointments','supplies','documents','digest']) {
     await page.getByTestId(`tab-${section}`).click();
     await expect(page.getByTestId(`tab-${section}`)).toHaveAttribute('aria-current', 'page');
