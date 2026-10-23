@@ -124,8 +124,8 @@ test('sign-in, focused green walkthrough, FAQ and reduced motion work', async ({
   await page.keyboard.press('ArrowDown');
   await expect(page.getByRole('tab', { name: 'Does it tell me which medication to give?', exact: true })).toBeFocused();
   await expect(page.locator('.ref-faq-answer')).toContainText('does not recommend doses');
-  await expect(page.locator('.ref-hero').getByRole('link', { name: 'Create a care circle', exact: true })).toHaveAttribute('href', '#/signup');
-  await expect(page.locator('.ref-hero').getByRole('link', { name: 'Sign in', exact: true })).toHaveAttribute('href', '#/login');
+  await expect(page.locator('.ref-hero').getByRole('link', { name: 'Create a care circle', exact: true })).toHaveAttribute('href', '/signup');
+  await expect(page.locator('.ref-hero').getByRole('link', { name: 'Sign in', exact: true })).toHaveAttribute('href', '/login');
   await expect(page.locator('.ref-closing, .ref-detail-world, .ref-footer-boundary')).toHaveCount(0);
   await expect(page.locator('.ref-walkthrough')).toHaveCSS('background-color', 'rgb(3, 79, 70)');
   await expect(page.getByText('Download CareLog', { exact: true })).toHaveCount(0);
