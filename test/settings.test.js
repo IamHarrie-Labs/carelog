@@ -26,3 +26,14 @@ test('settings: change your name, change your password, and sign out of other de
   assert.equal((await call('GET', '/api/me', null, tablet)).status, 401);
   assert.equal((await call('GET', '/api/me', null, sam.token)).status, 200);
 });
+
+test('sign-ins end after 30 days and are not counted as open', async () => {
+  const { call, user, db } = await setup();
+  const sam = await user('Sam');
+  const old = new Date(Date.now() - 31 * 86400e3).toISOString();
+  await db.prepare('INSERT INTO sessions (token, user_id, created_at) VALUES (?, ?, ?)').run('old-browser', sam.id, old);
+  assert.equal((await call('GET', '/api/me', null, 'old-browser')).status, 401, 'a 31-day-old sign-in no longer works');
+  assert.equal((await call('GET', '/api/me/sessions', null, sam.token)).body.other_sessions, 0, 'and is not counted');
+  await call('POST', '/api/login', { email: 'sam@example.com', password: 'password123' });
+  assert.equal(await db.prepare('SELECT COUNT(*) AS n FROM sessions WHERE token = ?').get('old-browser').then((r) => r.n), 0, 'signing in tidies it away');
+});

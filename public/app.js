@@ -205,19 +205,20 @@ async function settingsView() {
     try {
       const r = await api('/api/me/password', { method: 'POST', body: { current: cur.value, next: next.value } });
       cur.value = ''; next.value = '';
-      say(pwMsg, r.other_sessions_ended ? `Password changed. ${r.other_sessions_ended} other device(s) were signed out.` : 'Password changed.');
+      say(pwMsg, r.other_sessions_ended ? `Password changed. ${r.other_sessions_ended} other sign-in${r.other_sessions_ended === 1 ? ' was' : 's were'} ended.` : 'Password changed.');
     } catch (err) { say(pwMsg, friendly(err), false); }
   } }, h('h2', {}, 'Password'),
-    field('Current password', cur), field('New password', next, 'At least 8 characters. Changing it signs you out on your other devices.'),
+    field('Current password', cur), field('New password', next, 'At least 8 characters. Changing it signs you out everywhere else.'),
     h('div', { class: 'row' }, h('button', { class: 'primary', type: 'submit', testid: 'settings-save-password' }, 'Change password')), pwMsg);
 
   const devMsg = status('settings-devices-status');
-  const devices = h('div', { class: 'card', testid: 'settings-devices' }, h('h2', {}, 'Devices'),
-    h('p', {}, others.other_sessions ? `You are also signed in on ${others.other_sessions} other device(s).` : 'You are only signed in on this device.'),
-    h('p', { class: 'small muted' }, 'Lost a phone, or used a shared computer? Sign out everywhere except here.'),
+  const n = others.other_sessions;
+  const devices = h('div', { class: 'card', testid: 'settings-devices' }, h('h2', {}, 'Sign-ins'),
+    h('p', {}, n ? `${n} other sign-in${n === 1 ? ' is' : 's are'} still open on other browsers or devices.` : 'You are only signed in here.'),
+    h('p', { class: 'small muted' }, 'Sign-ins end on their own after 30 days. Lost a phone, or used a shared computer? Sign out everywhere else now.'),
     h('div', { class: 'row' }, h('button', { testid: 'settings-sign-out-others', disabled: !others.other_sessions, onclick: async () => {
-      try { const r = await api('/api/me/sign-out-others', { method: 'POST' }); say(devMsg, `Signed out of ${r.ended} other device(s).`); } catch (err) { say(devMsg, friendly(err), false); }
-    } }, 'Sign out of other devices')), devMsg);
+      try { const r = await api('/api/me/sign-out-others', { method: 'POST' }); say(devMsg, `Signed out of ${r.ended} other sign-in${r.ended === 1 ? '' : 's'}.`); } catch (err) { say(devMsg, friendly(err), false); }
+    } }, 'Sign out everywhere else')), devMsg);
 
   const page = () => h('div', { class: 'cl-settings' }, h('h1', {}, 'Settings'), profile, password, devices);
   render(page(), 'settings');

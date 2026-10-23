@@ -5,7 +5,7 @@ import {
   isDate, isTime, isIso, clean, HttpError,
 } from './lib.js';
 import {
-  circleCtx, currentUser, serializeRecord, visibleRecords, dayView, memberList, canSeePrivate, getCookie,
+  circleCtx, currentUser, sessionCutoff, serializeRecord, visibleRecords, dayView, memberList, canSeePrivate, getCookie,
 } from './core.js';
 import { parseQuickLog } from './parse.js';
 import { TEMPLATES } from './templates.js';
@@ -33,6 +33,8 @@ export function createApp(db, { secureCookies = false, serveStaticFiles = true }
   const startSession = async (c, userId) => {
     const tok = token();
     await db.prepare('INSERT INTO sessions (token, user_id, created_at) VALUES (?, ?, ?)').run(tok, userId, now());
+    // Tidy this person's expired sign-ins while we are here.
+    await db.prepare('DELETE FROM sessions WHERE user_id = ? AND created_at < ?').run(userId, sessionCutoff());
     c.header('Set-Cookie', `cl_session=${tok}; HttpOnly; Path=/; SameSite=Lax; Max-Age=2592000${secureCookies ? '; Secure' : ''}`);
     return tok;
   };
@@ -116,7 +118,7 @@ export function createApp(db, { secureCookies = false, serveStaticFiles = true }
 
   app.get('/api/me/sessions', async (c) => {
     const user = await currentUser(db, c);
-    const r = await db.prepare('SELECT COUNT(*) AS n FROM sessions WHERE user_id = ? AND token != ?').get(user.id, sessionToken(c));
+    const r = await db.prepare('SELECT COUNT(*) AS n FROM sessions WHERE user_id = ? AND token != ? AND created_at >= ?').get(user.id, sessionToken(c), sessionCutoff());
     return c.json({ other_sessions: r.n });
   });
 
