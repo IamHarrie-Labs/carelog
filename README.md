@@ -1,160 +1,161 @@
 # CareLog
 
-**A shared care record for families who take turns looking after someone.**
-Who did what, a clear handover when care passes from one person to the next, and open items that never quietly disappear.
+**One shared care record for families who take turns looking after someone.**
 
-- **Live app:** https://carelog-sigma.vercel.app
-- **Requirements the browser suite is generated from:** [docs/PRD.md](docs/PRD.md)
-- **Try it:** create your own account on the sign-in page. No email is sent and no real data is needed; use made-up names.
-- **Built for:** TestSprite Hackathon Season 4
+When care passes from one person to the next, the next person needs to know what happened, what still needs checking and which jobs are not finished. CareLog keeps all of that in one place, with every entry signed by the person who wrote it.
+
+**Try it:** [carelog-sigma.vercel.app](https://carelog-sigma.vercel.app) · Create an account with made-up details. No email is sent.
+
+Built for TestSprite Hackathon Season 4.
+
+![CareLog landing page](docs/screenshots/landing.png)
+
+---
+
+## Contents
+
+1. [The problem](#the-problem)
+2. [What CareLog does](#what-carelog-does)
+3. [Screenshots](#screenshots)
+4. [How it is tested](#how-it-is-tested)
+5. [What the tests found](#what-the-tests-found)
+6. [Run it on your computer](#run-it-on-your-computer)
+7. [How the code is organised](#how-the-code-is-organised)
+8. [Known limits](#known-limits)
+
+---
 
 ## The problem
 
-Three siblings share the care of their father. They coordinate in a group chat and a paper notebook. Nobody can answer "did Dad have his 2pm tablets?", two people might each give a dose, a note about dizziness never reaches the next person, and "someone should book Thursday's transport" is said once and forgotten.
+Three brothers and sisters share the care of their father. They talk in a group chat and a paper notebook. Nobody can say for sure whether Dad had his 2 pm tablets. Two people might each give a dose. A note about dizziness never reaches the next person. "Someone should book Thursday's transport" is said once and forgotten.
 
-CareLog gives everyone the same record, written under their own name, and makes the *handover* the main event.
+## What CareLog does
 
-## What it does
-
-| Area | Behaviour |
+| Area | What you can do |
 |---|---|
-| **Records** | Each scheduled item can be completed once. A second attempt is refused and shows who already recorded it. A real second administration can still be reported truthfully as a flagged exception with an explanation. |
-| **Honest about uncertainty** | A passed time with nothing recorded shows *"Scheduled time passed; no administration recorded"*, never "missed". |
-| **Corrections** | Entries are never overwritten. A correction keeps the original, the author and the reason. Both *reported* time and *entered* time are stored. |
-| **Handoffs** | Prepare a handoff of what was recorded, what has no record, and every open item. The incoming person acknowledges the handoff. If something is corrected afterwards it is flagged *"Updated since you reviewed"*. |
-| **Open items** | Stay on every handoff until someone records an outcome. Acknowledging a handoff never completes them. |
-| **Care circle** | Roles: owner, family caregiver, paid carer, clinician (read-only, time-limited), neighbour, recipient. Membership is re-checked on **every request**, so removing someone takes effect immediately even for an open session. |
-| **Emergency packet** | A read-only, expiring, revocable link with medicines, allergies, recent entries and contacts. Private notes never appear. |
-| **Quick log** | Type "gave Dad his morning medication at 8am" and it becomes the right record (deterministic parser, no AI needed). |
-| **Money** | Shared costs split equally in whole cents; balances always sum to zero. |
-| **Care load** | Hours per person, a nudge when one person carries most of it, shift and respite logging, and private caregiver check-ins. |
-| **Appointments** | Who is taking them. An appointment nobody is taking becomes an open item. Calendar (.ics) download. |
-| **Supplies** | Low stock opens a refill item once; restocking closes it. |
-| **Devices** | Pill-box or fall-detector webhooks log *observations or incidents*, never proof a dose was given. |
-| **Digest, patterns, export** | Weekly summary built from stored records, repeated-word pointers ("dizzy" noted 3 times) with a clear non-diagnosis note, and a doctor-friendly export. |
-| **AI (optional)** | With `ANTHROPIC_API_KEY`, handoff summaries and translation are available. The facts always come from stored records, every line is source-linked, and a human reviews the draft. Without a key the app works fully and says so. |
+| **Today** | See the day's schedule. Mark a dose as given, refused or skipped. If someone already recorded it, CareLog shows who, instead of letting it be recorded twice. |
+| **Quick log** | Type "gave Dad his morning medication at 8am" and it becomes the right record. |
+| **Notes** | Add an observation, an incident, a meal or a visit. Mark a note as private if only family should see it. |
+| **Handoff** | At the end of your shift, write a handoff. It lists what was recorded, what has no record yet, and every unfinished job. The next person reads it and confirms they have seen it. |
+| **Open items** | Jobs stay on the list until someone writes down what was done. Reading a handoff does not tick them off. |
+| **Timeline** | Every entry in order, newest first. If an entry is corrected, the original and the reason are kept. |
+| **People** | Invite family, paid carers, a doctor (read only, for a set time) or a neighbour. Remove someone and they lose access straight away. |
+| **Emergency** | Share a link with medicines, allergies and contacts. Private notes are never included. Switch the link off whenever you like. |
+| **Money, appointments, supplies, documents** | Split shared costs to the cent, track who is taking each appointment, see when supplies run low, and keep key documents together. |
+| **Settings** | Change your name and password, and sign out of every other browser. |
 
-### What it deliberately does not do
+### What CareLog will not do
 
-It records what people enter. It does not recommend doses, judge whether a dose is safe, diagnose, or replace a clinician. It cannot prove a dose was given, only that someone said so.
+It records what people enter. It does not recommend doses, judge whether a dose is safe, diagnose anything, or replace a doctor or nurse. If nothing has been recorded, it says "no record". It never says a dose was missed, because it cannot know that.
 
-## Test strategy (what the suite covers)
+## Screenshots
 
-Tests run at three levels. The TestSprite suite gates every pull request.
-
-### TestSprite: 32 browser tests on every pull request
-
-Every pull request gets its own Vercel preview. When the preview is ready, the TestSprite GitHub App runs all 32 tests against it and reports a **TestSprite V3** status. Branch protection on `main` requires that status, admins included, and TestSprite's merge gate turns any failed test into a blocked merge.
-
-| Area | Tests |
+| Today | Handoff |
 |---|---|
-| Accounts | create an account, sign in, create a circle and land on Today |
-| Care circle setup | create a circle with the example schedule |
-| Today | record a scheduled dose as given, quick-log a medication, add a free-form note |
-| Handoff | prepare a handoff, see recorded care included, a second person reviews and acknowledges it |
-| Open items | add, assign to yourself, close with an outcome |
-| Timeline | newest-first order, correct an entry and keep the history |
-| People | invite a caregiver; remove one and confirm they lose access (two accounts in one test) |
-| Emergency packet | create, open and revoke a share link |
-| Documents | add a document, include it in the emergency packet |
-| Appointments | owned vs unowned (unowned becomes an open item) |
-| Supplies | track a low-stock item, restock and close the refill work |
-| Care load | log a shift and see it in history, save a private check-in |
-| Money | add an expense, review the list |
-| Notes | private observation, incident note |
+| ![Today page](docs/screenshots/today.png) | ![Handoff page](docs/screenshots/handoff.png) |
 
-Tests that change data start by creating a brand-new care circle, so runs never depend on what earlier runs left behind.
+| Settings |  |
+|---|---|
+| ![Settings page](docs/screenshots/settings.png) | |
 
-### Repository tests (`npm test`, 39 tests)
+## How it is tested
 
-The rules browser clicks cannot reach:
+Tests run at three levels. The browser tests decide whether a change is allowed in.
 
-- Concurrent submissions for one scheduled item create exactly one completion.
-- Two people racing to accept one invite: exactly one gets in.
-- A removed caregiver's still-valid session is rejected on reads, writes and export.
-- People outside a circle cannot tell whether it exists (404, not 403).
-- Private entries never reach paid carers, clinicians, handoffs, exports or the emergency packet.
-- Clinician access is read-only and expires on its own.
-- Corrections preserve the original, author and reason; acknowledgement refers to the version reviewed.
-- Open items survive acknowledgement and persist across handoffs until an outcome is recorded.
-- Money splits never lose or invent a cent.
-- Device events never count as an administration.
-- Signing out ends only the current session.
-- Form times are read in the circle's timezone, including across daylight-saving changes.
+### 1. TestSprite: 32 browser tests on every pull request
 
-### Playwright (`npm run test:browser`, 5 journeys)
+- Every pull request gets its own preview website on Vercel.
+- When the preview is ready, the TestSprite GitHub App runs all 32 tests against it.
+- The main branch only accepts a change when the **TestSprite V3** check passes. This applies to administrators too.
 
-Every workspace section, persistent records, notes on Today, inviting someone on the same device, and phone, tablet and desktop layouts, run locally against an isolated database.
+| Area | What the tests check |
+|---|---|
+| Accounts | Create an account, sign in, create a circle |
+| Today | Record a dose, quick log, add a note and see it on the page |
+| Handoff | Prepare a handoff, see what it includes, a second person reviews and confirms it |
+| Open items | Add, take on, and close with an outcome |
+| Timeline | Newest first, correct an entry and keep the history |
+| People | Invite someone; remove someone and check they lose access |
+| Emergency | Create, open and switch off a share link |
+| Documents, appointments, supplies, care load, money, notes | The main action in each, with the result checked on screen |
 
-## What TestSprite caught
+Tests that change data start by creating their own care circle, so leftovers from earlier runs cannot confuse them. Tests that need two people create a second account inside the test.
 
-Each of these was a real defect in the app, found by a failing TestSprite test and fixed in code:
+### 2. Repository tests: `npm test` (41 tests)
 
-1. **Signing out signed you out everywhere.** Tests running in parallel on one account kept hitting "Please sign in" mid-test. The cause: sign-out deleted every session for the user, so one device logging out logged out all the others. Fixed in [PR #4](https://github.com/IamHarrie-Labs/carelog/pull/4): sign-out now ends only the current session.
-2. **Restocking closed the refill job too early.** A restock that still left the item below its low-stock level closed the open "refill" item anyway. Fixed in PR #4.
-3. **Logged shifts were invisible.** Logging a shift updated the totals, but nowhere showed the shift itself. PR #4 added a shift history.
-4. **Times shifted by an hour.** A shift typed as 14:00 to 15:00 showed as 15:00 to 16:00 when the device's timezone differed from the circle's. Forms now read times in the circle's timezone (shifts and appointments). Fixed in [PR #2](https://github.com/IamHarrie-Labs/carelog/pull/2).
+These check rules a browser cannot easily reach. For example: two people recording the same dose at the same moment, someone removed from a circle trying to keep reading it, private notes leaking to the wrong role, money splits losing a cent, times shifting across time zones, and sign-ins ending after 30 days.
 
-PR #4 went from 26 passed, 3 failed, 3 blocked to 31 of 32 after these fixes.
+### 3. Browser journeys on your computer: `npm run test:browser` (7 journeys)
 
-**The first PR under the merge gate** ([PR #5](https://github.com/IamHarrie-Labs/carelog/pull/5)) went red at 28 of 32 and was blocked. Over the next runs TestSprite surfaced:
+Every section of the app on phone, tablet and desktop sizes, plus inviting someone on the same device, settings, and the logo taking you back to the landing page.
 
-5. **"null" printed on every sign-in page**, live in production. The form passed `null` to `replaceChildren`, which writes it as text.
-6. **Notes vanished from Today.** "Add a note" said "Saved." but the note only existed on the Timeline. Today now lists the day's notes.
-7. **Invite links were easy to mistype.** Invite and emergency links now use lowercase letters and digits with no look-alikes, still about 128 bits.
-8. **A missing button with no reason.** A handoff addressed to someone else hid the acknowledge button silently; the page now says who can acknowledge it.
-9. **No way to invite the person sitting next to you.** Opening your own invite just said "already a member". It now offers "Sign out so they can join" on the same device.
+## What the tests found
 
-PR #5 then passed **32 of 32** and merged through the gate.
+Every item below was a real problem in the app, found by a failing TestSprite test and fixed in code.
 
-## Honest gaps
+| # | What went wrong | What we changed | Pull request |
+|---|---|---|---|
+| 1 | Signing out on one browser signed you out everywhere | Sign-out now ends only that browser | [#4](https://github.com/IamHarrie-Labs/carelog/pull/4) |
+| 2 | Restocking closed the refill job while stock was still low | The job closes only when stock is back above the low level | [#4](https://github.com/IamHarrie-Labs/carelog/pull/4) |
+| 3 | A logged shift never appeared anywhere | Care load now lists each shift | [#4](https://github.com/IamHarrie-Labs/carelog/pull/4) |
+| 4 | A 2 pm shift showed as 3 pm for people in another time zone | Times are read in the circle's time zone | [#2](https://github.com/IamHarrie-Labs/carelog/pull/2) |
+| 5 | The word "null" appeared on the sign-in page | Removed | [#5](https://github.com/IamHarrie-Labs/carelog/pull/5) |
+| 6 | A note saved from Today vanished from the page | Today lists the day's notes | [#5](https://github.com/IamHarrie-Labs/carelog/pull/5) |
+| 7 | Invite links were easy to copy wrongly | Links use letters and numbers that cannot be mixed up | [#5](https://github.com/IamHarrie-Labs/carelog/pull/5) |
+| 8 | A missing "acknowledge" button had no explanation | The page says who the handoff is for | [#5](https://github.com/IamHarrie-Labs/carelog/pull/5) |
+| 9 | You could not invite the person sitting next to you | "Open the invite on this device" | [#5](https://github.com/IamHarrie-Labs/carelog/pull/5) |
+| 10 | Pages got slower as a circle grew (a handoff took 127 database queries) | Records load in batches (a handoff now takes 10) | [#9](https://github.com/IamHarrie-Labs/carelog/pull/9) |
 
-- **Shared database.** Preview deployments use the same Turso database as production. Tests create fresh circles to stay isolated, but test records accumulate under the test account. Judges' own accounts and circles are private and unaffected.
-- **Run-to-run variance.** On the same code, full runs have ranged from 29 to 31 of 32. The failing tests move between runs. The most frequent are the two-person handoff test (two accounts in one flow) and a check for a brief "Saved privately." confirmation that sometimes disappears before the agent looks.
-- **Gate timing.** The merge gate and required check were switched on after PRs #2 and #4 merged. PR #5 is the first to go red, get blocked, and merge only after 32 of 32.
-- **Private check-ins** show only a count on the shared page, by design. The test checks the count, not the note.
+**PR #5** was the first change held by the gate: 28 of 32 tests passed, the merge was blocked, and after the fixes it passed 32 of 32. Every pull request since then has passed all 32 tests before merging.
 
-## Run locally
+## Run it on your computer
+
+You need [Node.js](https://nodejs.org) 22.13 or newer.
 
 ```bash
 npm install
-npm run seed     # optional: synthetic demo data
-npm start        # http://localhost:3000, data in ./carelog.db
-npm test
+npm run seed      # optional: adds a made-up example circle
+npm start         # open http://localhost:3000
+npm test          # repository tests
+npm run test:browser   # browser journeys (uses Microsoft Edge; set PW_CHANNEL=chrome for Chrome)
 ```
 
-Node 22.13+ required.
+### Put it online
 
-## Deploy
+CareLog runs on **Vercel** with a **Turso** database.
 
-CareLog runs on **Vercel** with a **Turso** (libSQL) database, so every pull request can get its own preview that TestSprite tests.
+1. Create a Turso database and note its address and access token.
+2. Import this repository into Vercel. Add `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`. `ANTHROPIC_API_KEY` is optional and only adds drafted handoff summaries.
+3. In Vercel's project settings, turn off **Deployment Protection** for previews, so TestSprite can open them.
 
-1. Create a Turso database; note its URL and an auth token.
-2. Import the repo in Vercel. Set `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` (and optionally `ANTHROPIC_API_KEY`).
-3. In Vercel project settings, turn **Deployment Protection off** for preview deployments, otherwise TestSprite cannot reach them.
-4. Run `npm run seed` once against the Turso URL to create the demo circle.
+## How the code is organised
 
-## Architecture
+```
+carelog/
+├── public/        The website people see (no framework, plain JavaScript)
+│   ├── app.js         Pages inside the app: Today, Handoff, People, Settings…
+│   ├── more.js        Money, care load, appointments, supplies, documents
+│   ├── reference-page.js   The landing page
+│   └── ui.js          Shared helpers: forms, messages, dates
+├── src/           The server
+│   ├── app.js         Sign-in, circles, records, invites, settings
+│   ├── core.js        The access check that runs on every request
+│   ├── handoffs.js    Handoffs and their summaries
+│   └── extras.js      Emergency links, money, supplies, care load
+├── api/           How Vercel runs the server
+├── test/          Repository tests and browser journeys
+└── docs/          Requirements (PRD.md), screenshots and design notes
+```
 
-- `src/` — Hono API on libSQL. `core.js` holds the access check that runs on every request; `handoffs.js` and `extras.js` hold the features.
-- `public/` — dependency-free browser app. All user text is inserted with `textContent`.
-- `api/[...path].js` — Vercel entry point. `test/` — API and rule tests.
-- Every interactive element has a stable `data-testid`.
+Everything people type is shown as plain text, never as code. Every button and field has a stable test name (`data-testid`), so tests do not break when the design changes.
 
-## Roadmap
+## Known limits
 
-The same record works anywhere responsibility for a person changes hands: newborns shared between parents and grandparents, children moving between two homes, recovery after surgery, dementia care, home-care agencies, and hospital discharge. Starting schedules for several of these already ship as templates.
+- **Shared database.** Preview websites use the same database as the live site. Tests keep apart by making their own care circles, but their records still land in the live database.
+- **Not yet tried by real caregivers.** The tests check that the app does what it was built to do. They cannot tell us whether a tired caregiver finds it easy at 2 am.
+- **No push notifications yet.** A message when someone hands over to you, or when a dose has no record, would help. It needs permission prompts and personal settings that are not built yet.
+- **Privacy.** Use made-up details in any public demo. Real health information needs a proper data-protection review before real families use this.
 
-## Privacy
+---
 
-Use synthetic data in any public demo. Real health information needs a proper data-protection review before real families use this.
-
-## Editorial frontend
-
-The approved cream, forest and sage design is implemented across the public landing, account forms and all care sections. Brand assets and font files are self-hosted. Sign in at `/#/login`; create an account at `/#/signup`. The TestSprite account forms retain their `data-testid` hooks.
-
-Run `npm run test:browser` for the Playwright journey. It starts a local app with an isolated `browser-tests.db`, creates synthetic users, verifies persistent care records, visits all 12 sections and checks phone/tablet/desktop layouts. The default browser channel is Edge; set `PW_CHANNEL=chrome` if using installed Chrome. API tests remain `npm test`.
-
-The landing was rebuilt from a measured section audit of the supplied Wispr Flow reference. The 36 reference captures and measurements are indexed in [docs/reference-audit/README.md](docs/reference-audit/README.md). EB Garamond and Figtree are locally hosted under their included licenses. The existing CareLog logo master is unchanged.
-
-CareLog opens in your browser. Sign in to view your circle, or create an account to start one. The landing page uses the same logo as account and workspace pages.
+*Built by Stanley Nnaka with help from Claude Code and Codex. Fonts are self-hosted under their open licences (see `public/assets`).*
