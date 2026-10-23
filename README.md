@@ -82,9 +82,9 @@ The rules browser clicks cannot reach:
 - Signing out ends only the current session.
 - Form times are read in the circle's timezone, including across daylight-saving changes.
 
-### Playwright (`npm run test:browser`, 4 journeys)
+### Playwright (`npm run test:browser`, 5 journeys)
 
-Every workspace section, persistent records and phone, tablet and desktop layouts, run locally against an isolated database.
+Every workspace section, persistent records, notes on Today, inviting someone on the same device, and phone, tablet and desktop layouts, run locally against an isolated database.
 
 ## What TestSprite caught
 
@@ -97,11 +97,21 @@ Each of these was a real defect in the app, found by a failing TestSprite test a
 
 PR #4 went from 26 passed, 3 failed, 3 blocked to 31 of 32 after these fixes.
 
+**The first PR under the merge gate** ([PR #5](https://github.com/IamHarrie-Labs/carelog/pull/5)) went red at 28 of 32 and was blocked. Over the next runs TestSprite surfaced:
+
+5. **"null" printed on every sign-in page**, live in production. The form passed `null` to `replaceChildren`, which writes it as text.
+6. **Notes vanished from Today.** "Add a note" said "Saved." but the note only existed on the Timeline. Today now lists the day's notes.
+7. **Invite links were easy to mistype.** Invite and emergency links now use lowercase letters and digits with no look-alikes, still about 128 bits.
+8. **A missing button with no reason.** A handoff addressed to someone else hid the acknowledge button silently; the page now says who can acknowledge it.
+9. **No way to invite the person sitting next to you.** Opening your own invite just said "already a member". It now offers "Sign out so they can join" on the same device.
+
+PR #5 then passed **32 of 32** and merged through the gate.
+
 ## Honest gaps
 
 - **Shared database.** Preview deployments use the same Turso database as production. Tests create fresh circles to stay isolated, but test records accumulate under the test account. Judges' own accounts and circles are private and unaffected.
 - **Run-to-run variance.** On the same code, full runs have ranged from 29 to 31 of 32. The failing tests move between runs. The most frequent are the two-person handoff test (two accounts in one flow) and a check for a brief "Saved privately." confirmation that sometimes disappears before the agent looks.
-- **Gate timing.** The merge gate and required check were switched on after PRs #2 and #4 merged. Those PRs show the red-to-green loop; the gate applies to everything after them.
+- **Gate timing.** The merge gate and required check were switched on after PRs #2 and #4 merged. PR #5 is the first to go red, get blocked, and merge only after 32 of 32.
 - **Private check-ins** show only a count on the shared page, by design. The test checks the count, not the note.
 
 ## Run locally
