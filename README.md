@@ -40,11 +40,34 @@ It records what people enter. It does not recommend doses, judge whether a dose 
 
 ## Test strategy (what the suite covers)
 
-Tests run at two levels, and both gate pull requests.
+Tests run at three levels. The TestSprite suite gates every pull request.
 
-**TestSprite (browser, against the live deployment):** sign-up and sign-in; creating a circle; recording a dose and seeing who recorded it; the "already recorded" path; handoff preparation and acknowledgement; closing an open item with an outcome; correcting an entry and seeing the history; inviting and removing a caregiver; the public emergency page.
+### TestSprite: 32 browser tests on every pull request
 
-**Repository tests (`npm test`, 35 tests):** the rules that browser clicks cannot reach.
+Every pull request gets its own Vercel preview. When the preview is ready, the TestSprite GitHub App runs all 32 tests against it and reports a **TestSprite V3** status. Branch protection on `main` requires that status, admins included, and TestSprite's merge gate turns any failed test into a blocked merge.
+
+| Area | Tests |
+|---|---|
+| Accounts | create an account, sign in, create a circle and land on Today |
+| Care circle setup | create a circle with the example schedule |
+| Today | record a scheduled dose as given, quick-log a medication, add a free-form note |
+| Handoff | prepare a handoff, see recorded care included, a second person reviews and acknowledges it |
+| Open items | add, assign to yourself, close with an outcome |
+| Timeline | newest-first order, correct an entry and keep the history |
+| People | invite a caregiver; remove one and confirm they lose access (two accounts in one test) |
+| Emergency packet | create, open and revoke a share link |
+| Documents | add a document, include it in the emergency packet |
+| Appointments | owned vs unowned (unowned becomes an open item) |
+| Supplies | track a low-stock item, restock and close the refill work |
+| Care load | log a shift and see it in history, save a private check-in |
+| Money | add an expense, review the list |
+| Notes | private observation, incident note |
+
+Tests that change data start by creating a brand-new care circle, so runs never depend on what earlier runs left behind.
+
+### Repository tests (`npm test`, 39 tests)
+
+The rules browser clicks cannot reach:
 
 - Concurrent submissions for one scheduled item create exactly one completion.
 - Two people racing to accept one invite: exactly one gets in.
@@ -56,6 +79,30 @@ Tests run at two levels, and both gate pull requests.
 - Open items survive acknowledgement and persist across handoffs until an outcome is recorded.
 - Money splits never lose or invent a cent.
 - Device events never count as an administration.
+- Signing out ends only the current session.
+- Form times are read in the circle's timezone, including across daylight-saving changes.
+
+### Playwright (`npm run test:browser`, 4 journeys)
+
+Every workspace section, persistent records and phone, tablet and desktop layouts, run locally against an isolated database.
+
+## What TestSprite caught
+
+Each of these was a real defect in the app, found by a failing TestSprite test and fixed in code:
+
+1. **Signing out signed you out everywhere.** Tests running in parallel on one account kept hitting "Please sign in" mid-test. The cause: sign-out deleted every session for the user, so one device logging out logged out all the others. Fixed in [PR #4](https://github.com/IamHarrie-Labs/carelog/pull/4): sign-out now ends only the current session.
+2. **Restocking closed the refill job too early.** A restock that still left the item below its low-stock level closed the open "refill" item anyway. Fixed in PR #4.
+3. **Logged shifts were invisible.** Logging a shift updated the totals, but nowhere showed the shift itself. PR #4 added a shift history.
+4. **Times shifted by an hour.** A shift typed as 14:00 to 15:00 showed as 15:00 to 16:00 when the device's timezone differed from the circle's. Forms now read times in the circle's timezone (shifts and appointments). Fixed in [PR #2](https://github.com/IamHarrie-Labs/carelog/pull/2).
+
+PR #4 went from 26 passed, 3 failed, 3 blocked to 31 of 32 after these fixes.
+
+## Honest gaps
+
+- **Shared database.** Preview deployments use the same Turso database as production. Tests create fresh circles to stay isolated, but test records accumulate under the test account. Judges' own accounts and circles are private and unaffected.
+- **Run-to-run variance.** On the same code, full runs have ranged from 29 to 31 of 32. The failing tests move between runs. The most frequent are the two-person handoff test (two accounts in one flow) and a check for a brief "Saved privately." confirmation that sometimes disappears before the agent looks.
+- **Gate timing.** The merge gate and required check were switched on after PRs #2 and #4 merged. Those PRs show the red-to-green loop; the gate applies to everything after them.
+- **Private check-ins** show only a count on the shared page, by design. The test checks the count, not the note.
 
 ## Run locally
 

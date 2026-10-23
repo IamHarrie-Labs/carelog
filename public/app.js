@@ -1,4 +1,4 @@
-import { h, api, ApiError, friendly, toast, modal, fmtTime, fmtDateTime } from './ui.js';
+import { h, api, ApiError, friendly, toast, modal, fmtTime, fmtDateTime, localInputToIso } from './ui.js';
 import { moreViews } from './more.js';
 import { brand, landingView, cleanupLandingMotion } from './landing.js';
 
@@ -86,7 +86,8 @@ function authView(inviteToken, initialMode) {
   const err = h('div', { class: 'alert bad', role: 'alert', hidden: true, testid: 'auth-error', tabindex: '-1' });
   const form = h('form', { testid: 'auth-form' });
   const draw = () => {
-    form.replaceChildren(
+    // replaceChildren, unlike h(), writes null as the text "null", so drop the absent sign-up-only parts.
+    form.replaceChildren(...[
       h('h2', { testid: 'auth-heading' }, mode === 'signup' ? 'Create your account' : 'Sign in to CareLog'),
       mode === 'signup' ? h('div', { class: 'field' }, h('label', { for: 'a_name' }, 'Your name'), h('input', { id: 'a_name', name: 'name', required: true, autocomplete: 'name', testid: 'auth-name' })) : null,
       h('div', { class: 'field' }, h('label', { for: 'a_email' }, 'Email'), h('input', { id: 'a_email', name: 'email', type: 'email', required: true, autocomplete: 'email', testid: 'auth-email' })),
@@ -97,7 +98,7 @@ function authView(inviteToken, initialMode) {
       h('p', { class: 'small', style: 'text-align:center;margin:14px 0 0' },
         mode === 'signup'
           ? ['Already have an account? ', h('a', { href: '#', testid: 'mode-login', onclick: (e) => { e.preventDefault(); mode = 'login'; err.hidden = true; draw(); } }, 'Go to sign in')]
-          : ['New to CareLog? ', h('a', { href: '#', testid: 'mode-signup', onclick: (e) => { e.preventDefault(); mode = 'signup'; err.hidden = true; draw(); } }, 'Create an account')]));
+          : ['New to CareLog? ', h('a', { href: '#', testid: 'mode-signup', onclick: (e) => { e.preventDefault(); mode = 'signup'; err.hidden = true; draw(); } }, 'Create an account')])].filter(Boolean));
   };
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
@@ -163,6 +164,9 @@ export { memberName, tz };
 async function todayView() {
   const cid = S.circle.id;
   const data = await api(`/api/circles/${cid}/today`);
+  // Notes entered today, so a note saved here stays in view. Administrations already show on the schedule.
+  const since = encodeURIComponent(localInputToIso(`${data.date}T00:00`, tz()));
+  const notes = can('read') ? (await api(`/api/circles/${cid}/records?since=${since}&limit=50`)).filter((r) => r.kind !== 'administration') : [];
   const canWrite = can('write_record');
   const status = (row) => {
     if (row.status === 'recorded') return h('span', { class: 'badge ok', testid: `status-${row.item.id}` }, `${row.record.outcome ?? 'recorded'} by ${row.record.author_name} at ${fmtTime(row.record.reported_at, tz())}`);
@@ -255,7 +259,12 @@ async function todayView() {
         });
         if (r) route();
       } }, 'Add scheduled item') : null),
-    canWrite || can('write_visit') ? noteBtn : null), 'today');
+    h('div', { class: 'card', testid: 'today-notes' }, h('h2', {}, 'Notes today'),
+      notes.length ? h('ul', { class: 'plain small' }, notes.map((r) => h('li', { testid: `today-note-${r.id}` },
+        h('span', { class: 'time' }, fmtTime(r.reported_at, tz())), ' ', h('strong', {}, r.author_name), ' ', h('span', { class: 'badge' }, r.kind),
+        r.is_private ? h('span', { class: 'badge' }, 'private') : null, ' ', r.text)))
+        : h('p', { class: 'muted' }, 'No notes yet today.'),
+      canWrite || can('write_visit') ? noteBtn : null)), 'today');
 }
 
 // ---------- Handoff ----------
@@ -295,6 +304,8 @@ async function handoffView() {
         latest.acknowledgements.length
           ? h('div', { class: 'alert ok', testid: 'ack-list' }, latest.acknowledgements.map((a) => h('div', {}, `Acknowledged by ${a.name} at ${fmtDateTime(a.acked_at, tz())}`)))
           : h('div', { class: 'alert info', testid: 'not-acked' }, 'Waiting for review.'),
+        !canAck && !mine && latest.from.id === S.me.id ? h('p', { class: 'small muted', testid: 'ack-who' }, 'You prepared this handoff. The next caregiver acknowledges it.') : null,
+        !canAck && !mine && latest.from.id !== S.me.id && !addressedToMe ? h('p', { class: 'small muted', testid: 'ack-who' }, `Only ${latest.to.name} can acknowledge this handoff.`) : null,
         canAck ? h('button', { class: 'primary', testid: 'ack-handoff', onclick: async () => {
           try { await api(`/api/circles/${cid}/handoffs/${latest.id}/ack`, { method: 'POST' }); toast('Acknowledged.'); route(); } catch (e) { toast(friendly(e)); }
         } }, 'I have reviewed this handoff') : null,
@@ -415,7 +426,8 @@ async function peopleView() {
     });
     if (out?.token) {
       const link = `${location.origin}/#/invite/${out.token}`;
-      await modal({ title: 'Invite link', submit: 'Done', intro: 'Send this link to the person. It works once.', fields: [{ name: 'link', label: 'Link', value: link }] });
+      const here = h('p', { class: 'small' }, 'Is the person with you? ', h('a', { href: `#/invite/${out.token}`, testid: 'open-invite-here', onclick: () => document.getElementById('modal').close() }, 'Open the invite on this device'));
+      await modal({ title: 'Invite link', submit: 'Done', intro: 'Send this link to the person. It works once.', extra: here, fields: [{ name: 'link', label: 'Link', value: link }] });
     }
   } }, 'Invite someone');
   render(h('div', {}, h('div', { class: 'row between' }, h('h1', {}, 'People'), can('members') ? invite : null),
@@ -444,6 +456,21 @@ async function publicEmergency(token) {
     null)));
 }
 
+// An invite opened by someone already in the circle is usually being set up for a person sitting
+// next to them. Offer to sign out on this device and keep the invite for the new person.
+function inviteForSomeoneElse(tok) {
+  render(h('div', { class: 'card', testid: 'invite-someone-else' },
+    h('h1', {}, 'This invite is for someone else'),
+    h('p', {}, `You are already in this care circle as ${S.me.name}. If the person you invited is with you, sign out so they can join on this device.`),
+    h('div', { class: 'row' },
+      h('button', { class: 'primary', testid: 'invite-switch', onclick: async () => {
+        try { await api('/api/logout', { method: 'POST' }); } catch { /* already signed out */ }
+        S.me = null; S.circle = null; sessionStorage.setItem('cl_invite', tok);
+        nav(`#/invite/${tok}`); route();
+      } }, 'Sign out so they can join'),
+      h('a', { class: 'btn', href: '#/' }, 'Back to my circles'))));
+}
+
 // ---------- router ----------
 let busy = false;
 let routePending = false;
@@ -470,7 +497,10 @@ export async function route() {
         const r = await api(`/api/invites/${pending}/accept`, { method: 'POST' });
         await loadMe(); toast('You have joined the care circle.'); S.circle = null;
         busy = false; nav(circleLink(r.circle_id, 'today')); return;
-      } catch (e) { toast(friendly(e)); if (inv) { busy = false; nav('#/'); return; } }
+      } catch (e) {
+        if (inv && e.message === 'already_member') { inviteForSomeoneElse(inv[1]); return; }
+        toast(friendly(e)); if (inv) { busy = false; nav('#/'); return; }
+      }
     }
     const m = hash.match(/^\/c\/(\d+)\/(\w+)$/);
     if (!m) { S.circle = null; await homeView(); return; }

@@ -35,6 +35,7 @@ test('invites work once, expire, and cannot create owners', async () => {
   const { sam, cid } = await circleWith({});
   assert.equal((await call('POST', `/api/circles/${cid}/invites`, { role: 'owner' }, sam.token)).status, 400);
   const inv = await call('POST', `/api/circles/${cid}/invites`, { role: 'caregiver' }, sam.token);
+  assert.match(inv.body.token, /^[2-9a-hjkmnp-z]{26}$/, 'invite links avoid look-alike characters');
   const jo = await user('Jo');
   const kim = await user('Kim');
   assert.equal((await call('POST', `/api/invites/${inv.body.token}/accept`, null, jo.token)).status, 200);

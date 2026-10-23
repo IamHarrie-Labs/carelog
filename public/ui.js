@@ -60,11 +60,15 @@ const MESSAGES = {
 };
 export const friendly = (e) => MESSAGES[e?.message] || (e?.message ? e.message.replace(/_/g, ' ') : 'Something went wrong.');
 
-export function toast(msg, ms = 3500) {
+// Confirmations stay long enough to read, and never disappear while the pointer or focus is on them.
+export function toast(msg, ms = 8000) {
   const box = document.getElementById('toast');
   const t = h('div', { role: 'status' }, msg);
   box.append(t);
-  setTimeout(() => t.remove(), ms);
+  let timer = setTimeout(() => t.remove(), ms);
+  const hold = () => clearTimeout(timer);
+  const release = () => { clearTimeout(timer); timer = setTimeout(() => t.remove(), 3000); };
+  t.addEventListener('mouseenter', hold); t.addEventListener('mouseleave', release);
 }
 
 // Modal form. onSubmit(values) runs on submit; if it throws, the message shows inside the dialog and

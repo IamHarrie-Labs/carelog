@@ -13,6 +13,7 @@ test('landing, account, persistent care record and every workspace section work 
   await expect(page.locator('main')).toBeFocused();
   await expect(page).toHaveURL(/\/$/);
   await page.getByTestId('landing-login').click();
+  await expect(page.getByTestId('auth-form')).not.toContainText('null');
   await page.getByTestId('auth-email').fill('missing@example.test');
   await page.getByTestId('auth-password').fill('unmatched-test-password');
   await page.getByTestId('auth-submit').click();
@@ -32,6 +33,10 @@ test('landing, account, persistent care record and every workspace section work 
   await expect(page.locator('[data-testid^="status-"]').first()).toContainText('Robin Test');
   await page.reload();
   await expect(page.locator('[data-testid^="status-"]').first()).toContainText('Robin Test');
+  await page.getByTestId('add-note').click();
+  await page.getByTestId('field-text').fill('Ate a full lunch');
+  await page.getByTestId('modal-submit').click();
+  await expect(page.getByTestId('today-notes')).toContainText('Ate a full lunch');
   for (const section of ['today','handoff','items','timeline','people','emergency','money','load','appointments','supplies','documents','digest']) {
     await page.getByTestId(`tab-${section}`).click();
     await expect(page.getByTestId(`tab-${section}`)).toHaveAttribute('aria-current', 'page');
@@ -119,7 +124,8 @@ test('sign-in, focused green walkthrough, FAQ and reduced motion work', async ({
   await page.keyboard.press('ArrowDown');
   await expect(page.getByRole('tab', { name: 'Does it tell me which medication to give?', exact: true })).toBeFocused();
   await expect(page.locator('.ref-faq-answer')).toContainText('does not recommend doses');
-  await expect(page.locator('.ref-hero').getByRole('link', { name: 'Sign in to CareLog', exact: true })).toHaveAttribute('href', '#/login');
+  await expect(page.locator('.ref-hero').getByRole('link', { name: 'Create a care circle', exact: true })).toHaveAttribute('href', '#/signup');
+  await expect(page.locator('.ref-hero').getByRole('link', { name: 'Sign in', exact: true })).toHaveAttribute('href', '#/login');
   await expect(page.locator('.ref-closing, .ref-detail-world, .ref-footer-boundary')).toHaveCount(0);
   await expect(page.locator('.ref-walkthrough')).toHaveCSS('background-color', 'rgb(3, 79, 70)');
   await expect(page.getByText('Download CareLog', { exact: true })).toHaveCount(0);
@@ -144,4 +150,31 @@ test('scrolling advances the reference-style product demonstration', async ({ pa
   await expect(page.getByTestId('workflow-preview')).toContainText('No administration recorded');
   await page.locator('.ref-scroll-track [data-scene="4"]').evaluate(el => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
   await expect(page.getByTestId('workflow-preview')).toContainText('Outcome still to be recorded.');
+});
+
+test('an invite can be handed to someone on the same device', async ({ page }) => {
+  const stamp = Date.now();
+  const signup = async (name, email) => {
+    await page.getByTestId('auth-name').fill(name);
+    await page.getByTestId('auth-email').fill(email);
+    await page.getByTestId('auth-password').fill('synthetic-test-password');
+    await page.getByTestId('auth-submit').click();
+  };
+  await page.goto('/#/signup');
+  await signup('Owner Ola', `ola.${stamp}@example.test`);
+  await page.getByTestId('new-circle').click();
+  await page.getByTestId('field-name').fill('Same device circle');
+  await page.getByTestId('field-recipient_name').fill('Dad');
+  await page.getByTestId('modal-submit').click();
+  await page.getByTestId('tab-people').click();
+  await page.getByTestId('invite').click();
+  await page.getByTestId('modal-submit').click();
+  await page.getByTestId('open-invite-here').click();
+  await expect(page.getByTestId('invite-someone-else')).toContainText('already in this care circle');
+  await page.getByTestId('invite-switch').click();
+  await expect(page.getByTestId('invite-banner')).toBeVisible();
+  await signup('Helper Hana', `hana.${stamp}@example.test`);
+  await expect(page.locator('main h1')).toContainText('Today for Dad');
+  await page.getByTestId('tab-people').click();
+  await expect(page.locator('main')).toContainText('Helper Hana');
 });

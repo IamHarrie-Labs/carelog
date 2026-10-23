@@ -1,4 +1,4 @@
-import { HttpError, can, now, token, clean, isDate, isIso, localParts } from './lib.js';
+import { HttpError, can, now, token, readableToken, clean, isDate, isIso, localParts } from './lib.js';
 import { circleCtx, currentUser, visibleRecords, canSeePrivate, serializeRecord, activeMembers } from './core.js';
 import { PATTERN_TERMS } from './parse.js';
 import { translate } from './narrative.js';
@@ -58,7 +58,7 @@ export function registerExtras(app, db, { need, body, createRecord }) {
     const { circle, user } = await circleCtx(db, c, 'emergency');
     const b = await body(c);
     const hours = Math.min(Math.max(Number(b.hours) || 24, 1), 72);
-    const tok = token(20);
+    const tok = readableToken();
     await db.prepare('INSERT INTO emergency_links (token, circle_id, created_by, created_at, expires_at) VALUES (?, ?, ?, ?, ?)')
       .run(tok, circle.id, user.id, now(), new Date(Date.now() + hours * 3600e3).toISOString());
     return c.json({ token: tok, path: `/e/${tok}`, expires_at: new Date(Date.now() + hours * 3600e3).toISOString() }, 201);

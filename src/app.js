@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { serveStatic } from '@hono/node-server/serve-static';
 import {
-  ROLES, can, now, token, hashPassword, verifyPassword, localParts, validTimezone,
+  ROLES, can, now, token, readableToken, hashPassword, verifyPassword, localParts, validTimezone,
   isDate, isTime, isIso, clean, HttpError,
 } from './lib.js';
 import {
@@ -127,7 +127,7 @@ export function createApp(db, { secureCookies = false, serveStaticFiles = true }
     const hours = Math.min(Math.max(Number(b.valid_hours) || 72, 1), 24 * 14);
     const accessHours = b.access_hours ? Math.min(Math.max(Number(b.access_hours), 1), 24 * 90) : null;
     need(b.role !== 'clinician' || accessHours, 'clinician_needs_access_hours');
-    const tok = token(18);
+    const tok = readableToken();
     await db.prepare('INSERT INTO invites (token, circle_id, role, created_by, expires_at, access_hours) VALUES (?, ?, ?, ?, ?, ?)')
       .run(tok, circle.id, b.role, user.id, new Date(Date.now() + hours * 3600e3).toISOString(), accessHours);
     return c.json({ token: tok, role: b.role, circle: circle.name }, 201);
