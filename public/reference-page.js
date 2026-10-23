@@ -67,7 +67,7 @@ export function renderReferencePage(root, brand) {
   const menu = h('div', { class: 'cl-nav-links', id: 'cl-nav-links' }, h('a', { href: '#/how-it-works' }, 'How it works'), h('a', { href: '#/for-families' }, 'For families'));
   const toggle = h('button', { class: 'cl-menu', 'aria-expanded': 'false', 'aria-controls': 'cl-nav-links', 'aria-label': 'Toggle navigation', onclick: () => { const open = toggle.getAttribute('aria-expanded') !== 'true'; toggle.setAttribute('aria-expanded', String(open)); menu.classList.toggle('is-open', open); } }, 'Menu');
   root.replaceChildren(h('div', { class: 'ref-page' },
-    h('header', { class: 'cl-nav ref-nav' }, brand(), menu, h('div', { class: 'cl-nav-actions' }, h('a', { href: '#/login', testid: 'landing-login' }, 'Sign in'), h('a', { class: 'ref-primary', href: '#/signup' }, 'Create a care circle')), toggle),
+    h('header', { class: 'cl-nav ref-nav' }, brand(), menu, h('div', { class: 'cl-nav-actions' }, h('a', { href: '#/login', testid: 'landing-login' }, 'Sign in'), h('a', { class: 'ref-primary', href: '#/signup' }, h('span', { class: 'ref-label-long' }, 'Create a care circle'), h('span', { class: 'ref-label-short', 'aria-hidden': 'true' }, 'Start'))), toggle),
     h('main', { id: 'main' },
       h('section', { class: 'ref-hero', 'aria-labelledby': 'ref-hero-title' }, label('CareLog · Shared family care'), h('h1', { id: 'ref-hero-title' }, 'Care changes hands.', h('em', {}, 'The details stay together.')), createCircleButton(), h('p', { class: 'ref-availability' }, 'Already caring together? ', h('a', { href: '#/login' }, 'Sign in')),
         h('figure', { class: 'cl-story ref-story', 'aria-label': 'A conversation represented as recorded care and a task' },
