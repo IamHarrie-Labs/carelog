@@ -87,7 +87,7 @@ async function logout() {
 async function loadMe() {
   try {
     const r = await api('/api/me');
-    S.me = r.user; S.circles = r.circles;
+    S.me = r.user; S.circles = r.circles; S._meAt = Date.now();
   } catch (e) {
     if (e.status !== 401) throw e;
     S.me = null; S.circles = [];
@@ -298,8 +298,10 @@ async function todayView() {
 async function handoffView() {
   const cid = S.circle.id;
   const list = await api(`/api/circles/${cid}/handoffs`);
-  const latest = list[0] ? await api(`/api/circles/${cid}/handoffs/${list[0].id}`) : null;
-  const narrative = latest ? await api(`/api/circles/${cid}/handoffs/${latest.id}/narrative`).catch(() => null) : null;
+  const [latest, narrative] = list[0] ? await Promise.all([
+    api(`/api/circles/${cid}/handoffs/${list[0].id}`),
+    api(`/api/circles/${cid}/handoffs/${list[0].id}/narrative`).catch(() => null),
+  ]) : [null, null];
 
   const prepare = h('button', { class: 'primary', testid: 'prepare-handoff', onclick: async () => {
     const others = S.members.filter((m) => m.id !== S.me.id && m.status === 'active' && ['owner', 'caregiver', 'paid'].includes(m.role));
@@ -510,7 +512,9 @@ export async function route() {
     const path = location.pathname;
     const hash = path;
     if (path.startsWith('/e/')) { await publicEmergency(path.slice(3)); return; }
-    await loadMe();
+    // Who you are is re-read at most every 30 seconds while moving around the app; the server
+    // still checks the session and membership on every request.
+    if (!S.me || Date.now() - (S._meAt || 0) > 30000) { await loadMe(); S._meAt = Date.now(); }
     const inv = hash.match(/^\/invite\/(.+)$/);
     if (!S.me) {
       if (inv) sessionStorage.setItem('cl_invite', inv[1]);

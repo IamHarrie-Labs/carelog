@@ -40,39 +40,57 @@ export function canSeePrivate(role) {
 }
 
 // A record's effective view = the original plus its latest correction. Originals are never altered.
-export async function serializeRecord(db, r) {
+// Records are serialized in batches: one query for all corrections and one for all authors, so a
+// page of N records costs 2 extra queries instead of 2N (each query is a round trip to the database).
+export async function serializeRecords(db, rows) {
+  if (!rows.length) return [];
+  const ids = rows.map((r) => r.id);
+  const marks = ids.map(() => '?').join(',');
   const corrections = await db.prepare(
     `SELECT c.*, u.name AS author_name FROM corrections c JOIN users u ON u.id = c.author_id
-     WHERE c.record_id = ? ORDER BY c.id`
-  ).all(r.id);
-  const latest = corrections.reduce((acc, c) => ({
-    text: c.new_text ?? acc.text,
-    reported_at: c.new_reported_at ?? acc.reported_at,
-    outcome: c.new_outcome ?? acc.outcome,
-  }), { text: r.text, reported_at: r.reported_at, outcome: r.outcome });
-  const author = r.author_id ? await db.prepare('SELECT name FROM users WHERE id = ?').get(r.author_id) : null;
-  return {
-    id: r.id,
-    kind: r.kind,
-    schedule_item_id: r.schedule_item_id,
-    scheduled_for: r.scheduled_for,
-    is_exception: !!r.is_exception,
-    is_private: !!r.is_private,
-    source: r.source,
-    author_id: r.author_id,
-    author_name: author?.name ?? (r.source.startsWith('device:') ? r.source.slice(7) : 'Unknown'),
-    entered_at: r.entered_at,
-    original: { text: r.text, reported_at: r.reported_at, outcome: r.outcome },
-    text: latest.text,
-    reported_at: latest.reported_at,
-    outcome: latest.outcome,
-    data: r.data ? JSON.parse(r.data) : null,
-    corrected: corrections.length > 0,
-    corrections: corrections.map((c) => ({
-      id: c.id, author_name: c.author_name, reason: c.reason, entered_at: c.entered_at,
-      new_text: c.new_text, new_reported_at: c.new_reported_at, new_outcome: c.new_outcome,
-    })),
-  };
+     WHERE c.record_id IN (${marks}) ORDER BY c.id`
+  ).all(...ids);
+  const byRecord = new Map();
+  for (const c of corrections) byRecord.set(c.record_id, [...(byRecord.get(c.record_id) || []), c]);
+  const authorIds = [...new Set(rows.map((r) => r.author_id).filter(Boolean))];
+  const authors = authorIds.length
+    ? await db.prepare(`SELECT id, name FROM users WHERE id IN (${authorIds.map(() => '?').join(',')})`).all(...authorIds)
+    : [];
+  const nameOf = new Map(authors.map((u) => [u.id, u.name]));
+  return rows.map((r) => {
+    const own = byRecord.get(r.id) || [];
+    const latest = own.reduce((acc, c) => ({
+      text: c.new_text ?? acc.text,
+      reported_at: c.new_reported_at ?? acc.reported_at,
+      outcome: c.new_outcome ?? acc.outcome,
+    }), { text: r.text, reported_at: r.reported_at, outcome: r.outcome });
+    return {
+      id: r.id,
+      kind: r.kind,
+      schedule_item_id: r.schedule_item_id,
+      scheduled_for: r.scheduled_for,
+      is_exception: !!r.is_exception,
+      is_private: !!r.is_private,
+      source: r.source,
+      author_id: r.author_id,
+      author_name: nameOf.get(r.author_id) ?? (r.source.startsWith('device:') ? r.source.slice(7) : 'Unknown'),
+      entered_at: r.entered_at,
+      original: { text: r.text, reported_at: r.reported_at, outcome: r.outcome },
+      text: latest.text,
+      reported_at: latest.reported_at,
+      outcome: latest.outcome,
+      data: r.data ? JSON.parse(r.data) : null,
+      corrected: own.length > 0,
+      corrections: own.map((c) => ({
+        id: c.id, author_name: c.author_name, reason: c.reason, entered_at: c.entered_at,
+        new_text: c.new_text, new_reported_at: c.new_reported_at, new_outcome: c.new_outcome,
+      })),
+    };
+  });
+}
+
+export async function serializeRecord(db, r) {
+  return (await serializeRecords(db, [r]))[0];
 }
 
 export async function visibleRecords(db, circleId, role, { since, until, kind, limit = 200 } = {}) {
@@ -84,7 +102,7 @@ export async function visibleRecords(db, circleId, role, { since, until, kind, l
   if (kind) { where.push('kind = ?'); args.push(kind); }
   args.push(Math.min(Number(limit) || 200, 500));
   const rows = await db.prepare(`SELECT * FROM records WHERE ${where.join(' AND ')} ORDER BY entered_at DESC, id DESC LIMIT ?`).all(...args);
-  return Promise.all(rows.map((r) => serializeRecord(db, r)));
+  return serializeRecords(db, rows);
 }
 
 // One row per schedule item for a given local date. A scheduled time passing without a record
@@ -109,7 +127,7 @@ export async function dayView(db, circle, date) {
       status,
       label: status === 'no_record' ? 'Scheduled time passed; no administration recorded' : undefined,
       record: rec ? await serializeRecord(db, rec) : null,
-      additional: await Promise.all(extras.map((r) => serializeRecord(db, r))),
+      additional: await serializeRecords(db, extras),
     };
   }));
 }
