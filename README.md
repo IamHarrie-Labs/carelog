@@ -115,6 +115,8 @@ CareLog makes twelve promises to families, for example "a removed caregiver lose
 
 A passing test only matters if it would fail when something breaks. So we broke each promise on purpose: [`testsprite/planted-bugs/run_study.py`](testsprite/planted-bugs/run_study.py) changes one or two lines of the real code, runs all twelve tests, records which ones fail, and puts the code back.
 
+The same twelve files are uploaded to TestSprite as backend tests in a project called "CareLog API promises". On 26 October 2026 TestSprite ran all twelve against the live site: **12 of 12 passed**.
+
 **Result: 12 of 12 planted bugs were caught.** The full table is in [`results.json`](testsprite/planted-bugs/results.json). The public page **[/promises](https://carelog-sigma.vercel.app/promises)** shows every promise, the bug that proved its test works, and the latest TestSprite result, read live from GitHub.
 
 ![Care promises page](docs/screenshots/promises.png)
