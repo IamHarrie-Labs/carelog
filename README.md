@@ -19,9 +19,10 @@ Built for TestSprite Hackathon Season 4.
 3. [Screenshots](#screenshots)
 4. [How it is tested](#how-it-is-tested)
 5. [What the tests found](#what-the-tests-found)
-6. [Run it on your computer](#run-it-on-your-computer)
-7. [How the code is organised](#how-the-code-is-organised)
-8. [Known limits](#known-limits)
+6. [Care promises, and proof the tests work](#care-promises-and-proof-the-tests-work)
+7. [Run it on your computer](#run-it-on-your-computer)
+8. [How the code is organised](#how-the-code-is-organised)
+9. [Known limits](#known-limits)
 
 ---
 
@@ -108,6 +109,16 @@ Every item below was a real problem in the app, found by a failing TestSprite te
 
 **PR #5** was the first change held by the gate: 28 of 32 tests passed, the merge was blocked, and after the fixes it passed 32 of 32. Every pull request since then has passed all 32 tests before merging.
 
+## Care promises, and proof the tests work
+
+CareLog makes twelve promises to families, for example "a removed caregiver loses access straight away" and "private notes never reach a paid carer". Each promise has its own test that talks to CareLog directly, without a browser. They live in [`testsprite/promises/`](testsprite/promises/).
+
+A passing test only matters if it would fail when something breaks. So we broke each promise on purpose: [`testsprite/planted-bugs/run_study.py`](testsprite/planted-bugs/run_study.py) changes one or two lines of the real code, runs all twelve tests, records which ones fail, and puts the code back.
+
+**Result: 12 of 12 planted bugs were caught.** The full table is in [`results.json`](testsprite/planted-bugs/results.json). The public page **[/promises](https://carelog-sigma.vercel.app/promises)** shows every promise, the bug that proved its test works, and the latest TestSprite result, read live from GitHub.
+
+![Care promises page](docs/screenshots/promises.png)
+
 ## Run it on your computer
 
 You need [Node.js](https://nodejs.org) 22.13 or newer.
@@ -117,6 +128,7 @@ npm install
 npm run seed      # optional: adds a made-up example circle
 npm start         # open http://localhost:3000
 npm test          # repository tests
+python testsprite/planted-bugs/run_study.py   # planted-bug study (needs: pip install requests)
 npm run test:browser   # browser journeys (uses Microsoft Edge; set PW_CHANNEL=chrome for Chrome)
 ```
 
