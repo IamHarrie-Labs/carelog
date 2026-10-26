@@ -304,3 +304,28 @@ dialog .field .small, dialog .help { font-size:12.5px; }
 .cl-readonly { margin:0; padding:10px 0; font-size:15px; color:#193c34; }
 .ok-text { color:#2f6a3f; margin-top:12px; } .bad-text { color:#a33a2b; margin-top:12px; }
 @media(max-width:760px) { .cl-side-settings { display:inline-flex; margin:0 0 8px; min-height:30px; font-size:12px; padding:4px 8px; } }
+
+/* ---------- Care promises (public proof page) ---------- */
+.cl-promises { min-height:100dvh; background:#FFFFEB; color:#1A1A1A; }
+.cl-promises .cl-auth-nav { max-width:1080px; margin:0 auto; }
+.cl-promises main { max-width:860px; margin:0 auto; padding:40px 24px 96px; }
+.cl-promises .cl-eyebrow { font:600 12px Figtree,sans-serif; letter-spacing:2px; text-transform:uppercase; color:#73736a; margin:0 0 14px; }
+.cl-promises h1 { font:400 56px/1.02 'EB Garamond',Georgia,serif; letter-spacing:-1.6px; margin:0; }
+.cl-promises h1 em { display:block; font-style:italic; color:#034F46; }
+.cl-promises-intro { font:400 18px/1.6 Figtree,sans-serif; color:#3d4a44; max-width:62ch; margin:22px 0 32px; }
+.cl-promises-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
+.cl-promises-stats > div { border:1px solid #e4e4d0; border-radius:14px; background:#fffff5; padding:18px 20px; }
+.cl-promises-stats strong { display:block; font:400 40px/1 'EB Garamond',Georgia,serif; color:#034F46; }
+.cl-promises-stats span { font:500 13px Figtree,sans-serif; color:#5f6f68; }
+.cl-gate { font:500 14px Figtree,sans-serif; padding:12px 16px; border-radius:10px; background:#f3f3e3; color:#3d4a44; margin:0 0 36px; }
+.cl-gate.is-pass { background:#dfeedd; color:#1f5a33; }
+.cl-gate.is-other { background:#f6e3d6; color:#7a3d1f; }
+.cl-promises-list { list-style:none; margin:0; padding:0; display:grid; gap:12px; }
+.cl-promises-list > li { display:flex; gap:18px; border:1px solid #e4e4d0; border-radius:14px; background:#fffff5; padding:20px 22px; }
+.cl-promise-id { flex:none; font:600 12px Figtree,sans-serif; letter-spacing:1px; color:#034F46; background:#e3ead3; border-radius:8px; padding:6px 8px; height:max-content; }
+.cl-promises-list h2 { font:600 18px/1.35 Figtree,sans-serif; margin:0 0 6px; }
+.cl-promises-list p { font:400 15px/1.55 Figtree,sans-serif; color:#3d4a44; margin:0 0 8px; }
+.cl-promise-proof { background:#f6f6ec; border-radius:8px; padding:8px 12px; }
+.cl-promises-list a, .cl-promises-foot a { font:500 14px Figtree,sans-serif; color:#034F46; }
+.cl-promises-foot { margin-top:28px; }
+@media(max-width:760px) { .cl-promises h1 { font-size:38px; } .cl-promises-stats { grid-template-columns:1fr; } .cl-promises-list > li { flex-direction:column; gap:10px; } }

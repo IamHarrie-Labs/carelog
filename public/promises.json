@@ -1,0 +1,203 @@
+{
+ "promises": [
+  {
+   "id": "P01",
+   "title": "A removed caregiver loses access straight away",
+   "why": "Membership is re-checked on every request, so a removed person's open sign-in stops working at once.",
+   "test": "testsprite/promises/P01_removed_person_loses_access.py",
+   "caught": [
+    "A removed caregiver keeps access",
+    "Strangers learn that a circle exists (403 instead of 404)"
+   ]
+  },
+  {
+   "id": "P02",
+   "title": "Outsiders cannot tell whether a circle exists",
+   "why": "A stranger gets the same 'not found' for a real circle as for one that does not exist.",
+   "test": "testsprite/promises/P02_outsiders_cannot_tell_a_circle_exists.py",
+   "caught": [
+    "Strangers learn that a circle exists (403 instead of 404)"
+   ]
+  },
+  {
+   "id": "P03",
+   "title": "Private notes never reach a paid carer",
+   "why": "Family caregivers can mark a note private. A paid carer in the same circle must never see it.",
+   "test": "testsprite/promises/P03_private_notes_stay_with_family.py",
+   "caught": [
+    "Private notes are shown to everyone"
+   ]
+  },
+  {
+   "id": "P04",
+   "title": "The emergency link never shows private notes or private documents",
+   "why": "Anyone with the link can read it, so only shared information may appear.",
+   "test": "testsprite/promises/P04_emergency_link_hides_private_things.py",
+   "caught": [
+    "Private notes are shown to everyone",
+    "Private documents appear on the emergency link"
+   ]
+  },
+  {
+   "id": "P05",
+   "title": "A switched-off emergency link stops working",
+   "why": "Revoking a shared link must cut access immediately.",
+   "test": "testsprite/promises/P05_switched_off_link_stops_working.py",
+   "caught": [
+    "A switched-off emergency link still opens"
+   ]
+  },
+  {
+   "id": "P06",
+   "title": "A scheduled dose can only be recorded once",
+   "why": "A second 'given' for the same dose is refused and says who already recorded it, so nobody double-doses.",
+   "test": "testsprite/promises/P06_a_dose_is_recorded_once.py",
+   "caught": [
+    "A dose can be recorded twice"
+   ]
+  },
+  {
+   "id": "P07",
+   "title": "Reviewing a handoff never ticks off unfinished jobs",
+   "why": "Acknowledging means 'I have read this'. Open items stay open until someone records an outcome.",
+   "test": "testsprite/promises/P07_reviewing_a_handoff_closes_nothing.py",
+   "caught": [
+    "Reviewing a handoff closes every open job"
+   ]
+  },
+  {
+   "id": "P08",
+   "title": "Corrections keep the original entry and the reason",
+   "why": "Nothing is overwritten. Everyone can see what was first written, what changed, who changed it and why.",
+   "test": "testsprite/promises/P08_corrections_keep_the_original.py",
+   "caught": [
+    "A correction overwrites the original entry"
+   ]
+  },
+  {
+   "id": "P09",
+   "title": "Shared costs always add up to the cent",
+   "why": "Splitting money must never lose or invent a cent, even when it does not divide evenly.",
+   "test": "testsprite/promises/P09_shared_costs_add_up_to_the_cent.py",
+   "caught": [
+    "Shared costs are rounded and gain a cent"
+   ]
+  },
+  {
+   "id": "P10",
+   "title": "Signing out ends only this browser",
+   "why": "Signing out on the family tablet must not sign you out on your phone.",
+   "test": "testsprite/promises/P10_signing_out_ends_only_this_browser.py",
+   "caught": [
+    "Signing out signs out every browser (the original bug)"
+   ]
+  },
+  {
+   "id": "P11",
+   "title": "A doctor or nurse can read but not change the record",
+   "why": "Clinician access is read-only and time-limited.",
+   "test": "testsprite/promises/P11_doctors_can_read_but_not_write.py",
+   "caught": [
+    "Doctors and nurses can change the record"
+   ]
+  },
+  {
+   "id": "P12",
+   "title": "Changing your password signs out every other browser",
+   "why": "If a phone is lost, a new password must end the sessions on it.",
+   "test": "testsprite/promises/P12_new_password_signs_out_everywhere_else.py",
+   "caught": [
+    "A new password leaves a lost phone signed in"
+   ]
+  }
+ ],
+ "study": "12 of 12 planted bugs caught",
+ "planted": [
+  {
+   "id": "B01",
+   "bug": "A removed caregiver keeps access",
+   "caught_by": [
+    "P01"
+   ]
+  },
+  {
+   "id": "B02",
+   "bug": "Strangers learn that a circle exists (403 instead of 404)",
+   "caught_by": [
+    "P01",
+    "P02"
+   ]
+  },
+  {
+   "id": "B03",
+   "bug": "Private notes are shown to everyone",
+   "caught_by": [
+    "P03",
+    "P04"
+   ]
+  },
+  {
+   "id": "B04",
+   "bug": "Private documents appear on the emergency link",
+   "caught_by": [
+    "P04"
+   ]
+  },
+  {
+   "id": "B05",
+   "bug": "A switched-off emergency link still opens",
+   "caught_by": [
+    "P05"
+   ]
+  },
+  {
+   "id": "B06",
+   "bug": "A dose can be recorded twice",
+   "caught_by": [
+    "P06"
+   ]
+  },
+  {
+   "id": "B07",
+   "bug": "Reviewing a handoff closes every open job",
+   "caught_by": [
+    "P07"
+   ]
+  },
+  {
+   "id": "B08",
+   "bug": "A correction overwrites the original entry",
+   "caught_by": [
+    "P08"
+   ]
+  },
+  {
+   "id": "B09",
+   "bug": "Shared costs are rounded and gain a cent",
+   "caught_by": [
+    "P09"
+   ]
+  },
+  {
+   "id": "B10",
+   "bug": "Signing out signs out every browser (the original bug)",
+   "caught_by": [
+    "P10"
+   ]
+  },
+  {
+   "id": "B11",
+   "bug": "Doctors and nurses can change the record",
+   "caught_by": [
+    "P11"
+   ]
+  },
+  {
+   "id": "B12",
+   "bug": "A new password leaves a lost phone signed in",
+   "caught_by": [
+    "P12"
+   ]
+  }
+ ]
+}

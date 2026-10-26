@@ -516,6 +516,45 @@ async function peopleView() {
     can('read') ? h('p', { class: 'small muted' }, 'Anything a person has already seen cannot be taken back, but they cannot see anything new once removed.') : null), 'people');
 }
 
+// ---------- care promises: what CareLog guarantees, and the proof ----------
+const REPO = 'https://github.com/IamHarrie-Labs/carelog';
+async function promisesView() {
+  document.body.classList.remove('marketing');
+  const data = await fetch('/promises.json').then((r) => r.json());
+  const gate = h('p', { class: 'cl-gate', testid: 'promises-gate' }, 'Checking the latest result on GitHub…');
+  root.replaceChildren(h('div', { class: 'cl-promises' },
+    h('header', { class: 'cl-auth-nav' }, brand(), h('a', { href: '/' }, 'Back to CareLog')),
+    h('main', { id: 'main' },
+      h('p', { class: 'cl-eyebrow' }, 'Care promises'),
+      h('h1', {}, 'Twelve things CareLog will never get wrong.', h('em', {}, 'And how we prove it.')),
+      h('p', { class: 'cl-promises-intro' }, 'Each promise below is checked by an automated test that talks to CareLog directly. To be sure the tests are not just passing by luck, we broke each promise on purpose. Every time, the right test failed.'),
+      h('div', { class: 'cl-promises-stats' },
+        h('div', {}, h('strong', {}, '12'), h('span', {}, 'promises, each with its own test')),
+        h('div', {}, h('strong', {}, data.study.split(' ')[0] + ' of ' + data.study.split(' ')[2]), h('span', {}, 'planted bugs caught')),
+        h('div', {}, h('strong', {}, '32'), h('span', {}, 'browser tests on every change'))),
+      gate,
+      h('ol', { class: 'cl-promises-list', testid: 'promises-list' }, data.promises.map((p) => h('li', { testid: `promise-${p.id}` },
+        h('span', { class: 'cl-promise-id' }, p.id),
+        h('div', {},
+          h('h2', {}, p.title),
+          h('p', {}, p.why),
+          p.caught.length ? h('p', { class: 'cl-promise-proof' }, h('strong', {}, 'Broken on purpose: '), p.caught.join('; '), '. The test caught it.') : null,
+          h('a', { href: `${REPO}/blob/main/${p.test}`, target: '_blank', rel: 'noopener' }, 'Read the test'))))),
+      h('p', { class: 'small muted cl-promises-foot' }, 'Run the study yourself: ', h('a', { href: `${REPO}/blob/main/testsprite/planted-bugs/run_study.py`, target: '_blank', rel: 'noopener' }, 'testsprite/planted-bugs/run_study.py'), '. It plants each bug in a local copy, runs the tests, and puts the code back.'))));
+  // The live gate result, straight from GitHub, so this page cannot claim a pass that did not happen.
+  // TestSprite reports on each pull request's last commit, so read the most recently merged one.
+  try {
+    const prs = await fetch('https://api.github.com/repos/IamHarrie-Labs/carelog/pulls?state=closed&sort=updated&direction=desc&per_page=10').then((r) => r.json());
+    const pr = prs.filter((x) => x.merged_at).sort((a, b) => b.merged_at.localeCompare(a.merged_at))[0];
+    const s = await fetch(`https://api.github.com/repos/IamHarrie-Labs/carelog/commits/${pr.head.sha}/status`).then((r) => r.json());
+    const ts = (s.statuses || []).find((x) => x.context === 'TestSprite V3');
+    gate.textContent = ts
+      ? `Latest merged change, pull request #${pr.number}: TestSprite ${ts.state === 'success' ? 'passed' : ts.state}${ts.description ? ` (${ts.description})` : ''} before it was allowed into main.`
+      : `Latest merged change, pull request #${pr.number}: no TestSprite result found.`;
+    gate.classList.add(ts?.state === 'success' ? 'is-pass' : 'is-other');
+  } catch { gate.textContent = 'Could not reach GitHub just now. Every result is listed on the pull requests.'; }
+}
+
 // ---------- emergency page for people with only a link ----------
 async function publicEmergency(token) {
   let p;
@@ -559,6 +598,7 @@ export async function route() {
     const path = location.pathname;
     const hash = path;
     if (path.startsWith('/e/')) { await publicEmergency(path.slice(3)); return; }
+    if (path === '/promises') { await promisesView(); return; }
     // Who you are is re-read at most every 30 seconds while moving around the app; the server
     // still checks the session and membership on every request.
     if (!S.me || Date.now() - (S._meAt || 0) > 30000) { await loadMe(); S._meAt = Date.now(); }

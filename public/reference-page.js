@@ -64,7 +64,7 @@ function faq() {
 
 export function renderReferencePage(root, brand, me) {
   document.body.classList.add('marketing');
-  const menu = h('div', { class: 'cl-nav-links', id: 'cl-nav-links' }, h('a', { href: '/how-it-works' }, 'How it works'), h('a', { href: '/for-families' }, 'For families'));
+  const menu = h('div', { class: 'cl-nav-links', id: 'cl-nav-links' }, h('a', { href: '/how-it-works' }, 'How it works'), h('a', { href: '/for-families' }, 'For families'), h('a', { href: '/promises' }, 'Care promises'));
   const toggle = h('button', { class: 'cl-menu', 'aria-expanded': 'false', 'aria-controls': 'cl-nav-links', 'aria-label': 'Toggle navigation', onclick: () => { const open = toggle.getAttribute('aria-expanded') !== 'true'; toggle.setAttribute('aria-expanded', String(open)); menu.classList.toggle('is-open', open); } }, 'Menu');
   root.replaceChildren(h('div', { class: 'ref-page' },
     h('header', { class: 'cl-nav ref-nav' }, brand(), menu, h('div', { class: 'cl-nav-actions' }, me
@@ -88,7 +88,7 @@ export function renderReferencePage(root, brand, me) {
     h('footer', { class: 'ref-footer' },
       h('div', { class: 'ref-footer-grid' },
         h('div', { class: 'ref-footer-brand' }, brand(), h('p', {}, 'One shared record for the people who take turns caring for someone.')),
-        h('nav', { 'aria-label': 'Product' }, label('Product'), h('a', { href: '/how-it-works' }, 'How it works'), h('a', { href: '/for-families' }, 'For families'), h('a', { href: '/questions' }, 'Questions')),
+        h('nav', { 'aria-label': 'Product' }, label('Product'), h('a', { href: '/how-it-works' }, 'How it works'), h('a', { href: '/for-families' }, 'For families'), h('a', { href: '/questions' }, 'Questions'), h('a', { href: '/promises' }, 'Care promises')),
         h('nav', { 'aria-label': 'Account' }, label('Account'), h('a', { href: '/login' }, 'Sign in'), h('a', { href: '/signup' }, 'Create a care circle')),
         h('nav', { 'aria-label': 'Open source' }, label('Open source'), h('a', { href: 'https://github.com/IamHarrie-Labs/carelog', target: '_blank', rel: 'noopener' }, 'Source code'), h('a', { href: 'https://github.com/IamHarrie-Labs/carelog/blob/main/docs/PRD.md', target: '_blank', rel: 'noopener' }, 'Product requirements'))),
       h('div', { class: 'ref-footer-bar' }, h('p', {}, `© ${new Date().getFullYear()} CareLog`), h('p', {}, 'Care changes hands. The details stay together.')))));

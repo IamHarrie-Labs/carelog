@@ -217,3 +217,12 @@ test('the logo and the site address lead to the landing page when signed in', as
   await expect(page).toHaveURL(/\/circles$/);
   await expect(page.getByTestId('new-circle')).toBeVisible();
 });
+
+test('the public care promises page lists every promise and its proof', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.ref-nav').getByRole('link', { name: 'Care promises' }).click();
+  await expect(page).toHaveURL(/\/promises$/);
+  await expect(page.locator('h1')).toContainText('Twelve things CareLog will never get wrong.');
+  await expect(page.getByTestId('promises-list').locator('li')).toHaveCount(12);
+  await expect(page.getByTestId('promise-P01')).toContainText('Broken on purpose');
+});
