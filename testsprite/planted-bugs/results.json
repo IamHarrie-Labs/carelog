@@ -1,0 +1,104 @@
+{
+  "baseline": [],
+  "bugs": [
+    {
+      "id": "B01",
+      "bug": "A removed caregiver keeps access",
+      "file": "src/core.js",
+      "caught_by": [
+        "P01"
+      ]
+    },
+    {
+      "id": "B02",
+      "bug": "Strangers learn that a circle exists (403 instead of 404)",
+      "file": "src/core.js",
+      "caught_by": [
+        "P01",
+        "P02"
+      ]
+    },
+    {
+      "id": "B03",
+      "bug": "Private notes are shown to everyone",
+      "file": "src/core.js",
+      "caught_by": [
+        "P03",
+        "P04"
+      ]
+    },
+    {
+      "id": "B04",
+      "bug": "Private documents appear on the emergency link",
+      "file": "src/extras.js",
+      "caught_by": [
+        "P04"
+      ]
+    },
+    {
+      "id": "B05",
+      "bug": "A switched-off emergency link still opens",
+      "file": "src/extras.js",
+      "caught_by": [
+        "P05"
+      ]
+    },
+    {
+      "id": "B06",
+      "bug": "A dose can be recorded twice",
+      "file": "src/app.js",
+      "caught_by": [
+        "P06"
+      ]
+    },
+    {
+      "id": "B07",
+      "bug": "Reviewing a handoff closes every open job",
+      "file": "src/handoffs.js",
+      "caught_by": [
+        "P07"
+      ]
+    },
+    {
+      "id": "B08",
+      "bug": "A correction overwrites the original entry",
+      "file": "src/app.js",
+      "caught_by": [
+        "P08"
+      ]
+    },
+    {
+      "id": "B09",
+      "bug": "Shared costs are rounded and gain a cent",
+      "file": "src/extras.js",
+      "caught_by": [
+        "P09"
+      ]
+    },
+    {
+      "id": "B10",
+      "bug": "Signing out signs out every browser (the original bug)",
+      "file": "src/app.js",
+      "caught_by": [
+        "P10"
+      ]
+    },
+    {
+      "id": "B11",
+      "bug": "Doctors and nurses can change the record",
+      "file": "src/lib.js",
+      "caught_by": [
+        "P11"
+      ]
+    },
+    {
+      "id": "B12",
+      "bug": "A new password leaves a lost phone signed in",
+      "file": "src/app.js",
+      "caught_by": [
+        "P12"
+      ]
+    }
+  ],
+  "summary": "12 of 12 planted bugs caught"
+}
